@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Televini</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&family=Roboto:wght@300;400;500&family=Roboto+Condensed:wght@300;400&family=Noto+Sans+JP:wght@300;400;500&display=block">
+<style>
+:root{--bg:#969696;--nav:#a6a6a6;--teal:#50e3c2;--org:#ffab40;--c:"Roboto Condensed","Roboto","Noto Sans JP",sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:clip;background:#000;font-family:Roboto,"Noto Sans JP",system-ui,sans-serif;color:#fff;user-select:none}
+.ms{font-family:"Material Symbols Outlined";font-weight:400;font-style:normal;line-height:1;display:inline-block;white-space:nowrap;letter-spacing:normal;font-feature-settings:"liga";-webkit-font-feature-settings:"liga";font-variation-settings:"FILL" 1,"wght" 500}
+#stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;overflow:clip;background:var(--bg)}
+.scr{position:absolute;inset:0;display:none}.scr.on{display:block}
+.orb{position:absolute;left:112px;top:62px;width:104px;height:104px;border-radius:50%;background:#e9e9e9;color:#757575;display:grid;place-items:center;font-size:60px;box-shadow:0 4px 10px #0006;transition:.2s}
+.orb.foc{transform:scale(1.18);box-shadow:0 12px 28px #0008;background:#fff}
+.ttl{position:absolute;font-family:var(--c);font-weight:300}
+/* card */
+.card{flex:none;position:relative;transition:transform .18s,box-shadow .18s,filter .18s;background:#fff;box-shadow:0 2px 4px #0004}
+.card .im{position:relative;background:linear-gradient(135deg,hsl(var(--h) 55% 48%),hsl(calc(var(--h) + 60) 65% 24%))}
+.card .tm{position:absolute;right:14px;bottom:8px;font-size:22px;color:#fff;font-family:var(--c)}
+.card .in{padding:18px 18px 0;color:#fff;font-family:var(--c)}.card .t{font-size:32px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.card .s{font-size:24px}
+.card.foc{transform:scale(1.07);z-index:5;box-shadow:0 18px 36px #0009}
+/* top (browse) : VideoBrowser風 折りたたみ */
+#browse{background:linear-gradient(#000,#565656)}
+#browse .gt{font-family:Roboto,"Noto Sans JP",sans-serif}
+#browse .orb{background:#ffab40;color:#fff}#browse .orb.foc{background:#ffc266}
+.nav{position:absolute;left:0;top:0;width:540px;height:100%;background:linear-gradient(180deg,#0842A0,#1A73E8);box-shadow:0 0 16px #0008;z-index:4;transition:width .25s,background .25s,box-shadow .25s}
+#browse.mini .nav{width:64px;background:linear-gradient(180deg,#0842A0,#1A73E8);box-shadow:none}
+.hds{position:absolute;left:0;right:0;top:210px;bottom:0;overflow:hidden;padding:60px 0 600px 96px;transition:opacity .2s}
+#browse.mini .hds{opacity:0}
+.hd{width:max-content;height:68px;line-height:68px;font-family:var(--c);font-size:32px;color:#ffffffa6;padding:0;white-space:nowrap;transition:font-size .15s,color .15s}
+.hd.sel{color:#fff}.hd.foc{font-size:40px;color:#fff}
+.hd .ms{width:40px;font-size:34px;vertical-align:middle;margin-right:14px;color:#ffffffc0;text-align:center;line-height:1;transition:opacity .2s}
+.hd .tx{display:inline-block;vertical-align:middle;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:380px;transition:max-width .25s,opacity .2s}
+#browse.mini .hd .tx{max-width:0;opacity:0}#browse.mini .hd .ms{opacity:0}
+.main{position:absolute;left:546px;right:0;top:200px;bottom:0;overflow:hidden;padding:55px 0 700px;transition:left .25s}
+#browse.mini .main{left:92px}
+.sec{font-family:var(--c);font-size:42px;height:62px;line-height:62px;color:#ffffff80;margin:0 0 18px 20px;transition:opacity .2s,color .2s}
+.blk.act .sec{color:#fff}#browse:not(.mini) .sec{opacity:0}
+.row{display:flex;gap:16px;overflow:hidden;padding:30px 0 30px 20px;margin:-30px 0 25px}
+.gi{flex:none;position:relative;width:300px;height:200px;background:#1c1c1c;color:#ffffffa6;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:16px;font-size:30px;line-height:1.25;box-shadow:0 3px 6px #0008;transition:transform .18s,background .18s,box-shadow .18s,color .2s}
+.gi .ms{font-size:52px;color:#fff}
+.blk.act .gi{background:#3c3c3c;color:#fff}.gi.foc{transform:scale(1.14);z-index:5;background:#4a4a4a;color:#fff;box-shadow:0 18px 36px #000a}
+.cp{width:313px;background:#1b1b1b;box-shadow:0 3px 6px #0008}.cp .im{height:176px;display:grid;place-items:center}
+.cp .im .ms{font-size:68px;color:#ffffffcc}
+.cp .in{height:104px;background:#1b1b1b;padding:18px 16px 0;transition:background .2s}.cp .t{font-size:32px;color:#ffffffa6}.cp .s{font-size:22px;color:#ffffff80;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.blk:not(.act) .cp .im{filter:brightness(.4) saturate(.6)}
+.blk.act .cp .in{background:#1976d2}.blk.act .cp .t{color:#fff}.blk.act .cp .s{color:#ffffffb8}
+.cp.foc{transform:scale(1.1)}.blk.act .cp.foc .in{background:#2b8cf0}
+/* search */
+#s1{background:#323232}.s1o{position:absolute;left:102px;top:52px;width:124px;height:124px;border-radius:50%;background:#e9e9e9;color:#6f6f6f;display:grid;place-items:center;font-size:76px;box-shadow:0 4px 10px #0007;transition:.2s}
+.s1o.foc{transform:scale(1.12);box-shadow:0 12px 26px #0009}
+.sf{position:absolute;left:356px;top:58px;width:1160px;height:112px;background:#b3b3b3;color:#fff;font-size:40px;line-height:112px;padding-left:48px;transition:.15s;white-space:nowrap;overflow:hidden}.sf.q{color:#222}.sf.foc{background:#c9c9c9;box-shadow:0 0 0 4px #fff}
+.sT{left:112px;top:238px;font-size:42px;font-family:var(--c);font-weight:400}
+.sR{position:absolute;left:112px;top:317px;display:flex;gap:16px}.rc{width:313px;background:#3a3a3a;box-shadow:0 3px 6px #0008}.rc .im{height:176px;display:grid;place-items:center}.rc .im .ms{font-size:64px;color:#ffffffcc}.rc .in{height:104px;padding:20px 16px}.rc .t{font-size:34px}.rc .s{font-size:24px;color:#ffffffb0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rc .tm{display:none}.rc.foc{transform:scale(1.1)}
+.none{position:absolute;font-size:40px;color:#ffffffa6;top:360px;left:112px}
+/* grid */
+#grid,#cv{background:radial-gradient(ellipse at 100% 0,#6f80c4,transparent 55%),radial-gradient(ellipse at 0 0,#a26aa4,transparent 60%),linear-gradient(#5a3d70,#120c1c 70%,#000)}
+#grid .orb,#cv .orb{background:#8bc34a;color:#fff}.gt{right:114px;top:56px;font-size:110px;color:#ffffffee}
+.gb{position:absolute;left:0;right:0;top:250px;bottom:0;overflow:hidden;padding:84px 0 400px 148px}
+.gg{display:grid;grid-template-columns:repeat(5,312px);gap:15px 16px}
+.gc{width:312px;filter:brightness(.65)}.gc .im{height:176px;display:grid;place-items:center}.gc .im .ms{font-size:64px;color:#ffffffcc}.gc .in{height:104px;background:#00606a;padding:20px 22px}.gc .t{font-size:28px}.gc .s{font-size:22px;color:#ffffffb0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gc.foc{filter:none;transform:scale(1.18)}.gc.foc .in{background:var(--org)}.gc.foc .s{color:#fff}.gc .tm{display:none}
+.gc.sel{outline:5px solid #fff;filter:none}
+.heb{display:none;position:absolute;left:260px;top:76px;gap:24px}.heb.on{display:flex}
+.hbt{font-size:32px;padding:0 32px;height:76px;line-height:76px;background:#37474f;font-family:var(--c);transition:.15s}
+.hbt.foc{background:#fff;color:#222;transform:scale(1.06)}
+/* list (トップ画面と配色を共通化) */
+#list{background:linear-gradient(#000,#565656)}
+.lst{position:absolute;left:50%;margin-left:-696px;top:282px;width:1393px;box-shadow:0 8px 30px #0008;overflow:hidden}
+.lh{height:97px;line-height:97px;background:#1976d2;font-size:31px;padding-left:64px}
+.lb{height:760px;overflow:hidden;background:#1b1b1b}
+.li{position:relative;height:96px;display:flex;align-items:center;font-size:31px;padding:0 64px;border-bottom:1px solid #3c3c3c;color:#ffffffa6}
+.li>*{position:relative;z-index:1}.li b{font-weight:400;width:105px}.li span{flex:1}
+.li.foc{color:#fff}.li.foc::before{content:"";position:absolute;left:0;top:0;bottom:0;width:69%;background:#3c3c3c}
+.bx{width:56px;height:56px;background:#fff;border-radius:2px;display:grid;place-items:center;color:#1976d2;font-size:44px}
+/* settings (キーボード設定と配色を共通化) */
+#set{background:#101315}
+.sl{position:absolute;left:0;top:0;width:806px;height:100%;text-align:right}
+.cat{position:absolute;right:0;top:432px;width:806px;font-size:30px;color:#ffffffc8;font-family:var(--c)}.nm{position:absolute;right:0;top:488px;width:806px;font-size:76px;font-weight:300;font-family:var(--c);white-space:nowrap}
+.sic{position:absolute;left:840px;top:402px;width:279px;height:279px;background:#565c61;display:grid;place-items:center;font-size:150px;color:#ffffffcc}
+.sr{position:absolute;left:1157px;right:0;top:0;bottom:0;background:#1d2124;overflow:hidden}
+.sh{position:absolute;left:0;right:0;top:479px;height:123px;background:#2c3135;z-index:2}.sh span{position:absolute;left:59px;top:34px;font-size:28px;font-family:var(--c)}.sh i{position:absolute;left:59px;top:80px;width:568px;height:3px;background:#fff}
+.sw{position:absolute;left:0;right:0;top:479px;bottom:0;overflow:hidden;padding:123px 0 500px}
+.se{height:130px;padding:26px 0 0 59px;transition:.15s}.se .a{font-size:38px;font-family:var(--c)}.se .b{font-size:24px;color:#ffffffb8}.se.foc{background:#ffffff2a}
+/* input */
+.ip{position:absolute;left:0;right:0;top:0;height:600px;background:#1976d2}
+.pr{position:absolute;left:50%;margin-left:-512px;top:400px;font-size:76px;font-weight:300;font-family:var(--c)}
+.fd{position:absolute;left:50%;margin-left:60px;top:400px;width:700px;height:84px;border-bottom:3px solid #fff;font-size:60px;font-weight:300;white-space:nowrap;overflow:hidden}.fd:after{content:"";display:inline-block;width:3px;height:64px;background:#fff;vertical-align:middle;animation:bl 1s steps(1) infinite}@keyframes bl{50%{opacity:0}}
+/* chat (DetailsFragment ベース) */
+#chat{background:#000}
+.dbg{position:absolute;inset:0;background:linear-gradient(#000a,#000e),radial-gradient(ellipse at 70% 20%,hsl(var(--h) 45% 38%),transparent 70%),linear-gradient(120deg,hsl(var(--h) 40% 18%),#050508);transition:filter .3s}
+#chat.rel .dbg{filter:brightness(.6)}
+.dtc{position:absolute;left:0;top:0;width:100%;height:1750px;transition:transform .35s}
+#chat.rel .dtc{transform:translateY(-820px)}
+.dab{position:absolute;left:640px;right:0;top:390px;height:170px;background:#263238e8}
+.dbs{position:absolute;left:680px;top:415px;display:flex;gap:16px}
+.db{width:280px;height:120px;background:#37474f;padding:0 26px;display:flex;flex-direction:column;justify-content:center;transition:.15s}
+.db .t{font-size:24px;letter-spacing:1px;color:#ffffffc0;font-family:var(--c)}.db b{font-size:34px;font-weight:500;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.db.foc{background:#fff;color:#222;transform:scale(1.05);box-shadow:0 10px 24px #0008}.db.foc .t{color:#333}
+.dpn{position:absolute;left:0;right:0;top:560px;height:430px;background:#1976d2}
+.dtT{position:absolute;left:640px;top:32px;width:1160px;font-size:52px;font-family:var(--c);font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dtS{position:absolute;left:640px;top:104px;font-size:28px;color:#ffffffcc;font-family:var(--c)}
+.dtD{position:absolute;left:640px;top:154px;width:1160px;height:244px;overflow-y:auto;font-size:30px;line-height:1.55;color:#fff;font-family:Roboto,"Noto Sans JP",sans-serif;padding-right:20px}
+#chat.lg .dtD{font-size:38px;line-height:1.5}
+.dpo{position:absolute;left:112px;top:180px;width:470px;height:640px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:32px;text-align:center;color:#fff;background:linear-gradient(160deg,hsl(var(--h) 55% 52%),hsl(calc(var(--h) + 60) 60% 22%));box-shadow:0 20px 50px #000a}
+.dpo .ms{font-size:180px;color:#ffffffcc}
+.dpo .cap{font-size:32px;font-family:var(--c);line-height:1.3}
+.dst{position:absolute;left:112px;top:1030px;font-size:44px;font-family:var(--c)}
+.drl{position:absolute;left:0;width:1920px;top:1100px;overflow:hidden;display:flex;gap:16px;padding:60px 0 60px 112px}
+/* textbox & チャットUIモード */
+.ctb{position:absolute;left:640px;top:240px;width:860px;height:112px;background:#b3b3b3;color:#fff;font-size:36px;line-height:112px;padding:0 36px;white-space:nowrap;overflow:hidden;transition:.15s}
+.ctb.q{color:#222}.ctb.foc{background:#c9c9c9;box-shadow:0 0 0 4px #fff}
+.csb{position:absolute;left:1520px;top:240px;width:280px;height:112px;background:#37474f;font-size:36px;font-family:var(--c);display:grid;place-items:center;transition:.15s}
+.csb.foc{background:#fff;color:#222;transform:scale(1.05);box-shadow:0 10px 24px #0008}
+#chat.cui .dtT,#chat.cui .dtS,#chat.cui .dtD{display:none}
+.cmsg{display:none;position:absolute;left:640px;top:24px;width:1160px;height:382px;overflow-y:auto;flex-direction:column;gap:16px;padding-right:16px}
+#chat.cui .cmsg{display:flex}
+.cm{padding:18px 26px;background:#0d47a1;font-size:28px;line-height:1.45;max-width:88%;align-self:flex-start}
+.cm.u{background:#37474f;align-self:flex-end}
+#chat.lg .cm{font-size:34px}
+/* card view */
+.cvs{position:absolute;left:0;right:0;top:220px;bottom:0;overflow:hidden;padding:70px 0 500px 148px}
+.cvk{margin-bottom:46px}.cvt{font-family:var(--c);font-size:40px;color:#ffffff90;height:54px;margin-bottom:22px;transition:color .2s}.cvk.act .cvt{color:#fff}
+.cvr{display:flex;gap:20px;align-items:flex-start}
+.cva,.cvbd{width:312px}.cva .im,.cvbd .im{height:176px;display:grid;place-items:center}.cva .im .ms,.cvbd .im .ms{font-size:64px;color:#ffffffcc}
+.cva .in,.cvbd .in{height:104px;background:#00606a;padding:20px 22px;position:relative;transition:background .2s}
+.cva .t,.cvbd .t{font-size:28px}.cva .s,.cvbd .s{font-size:22px;color:#ffffffa0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cva.foc,.cvbd.foc{transform:scale(1.12)}.cva.foc .in,.cvbd.foc .in{background:var(--org)}.cva.foc .s,.cvbd.foc .s{color:#fff}
+.cvbd .t{padding-right:52px}
+.cvbd .bdg{position:absolute;right:16px;top:16px;width:40px;height:40px;border-radius:50%;background:#ffffff30;display:grid;place-items:center;font-size:24px}
+.cvbd .xt{position:absolute;right:20px;bottom:14px;font-size:22px;color:#fff;opacity:0;transition:.2s}.cvbd.foc .xt{opacity:1}
+/* dialogs */
+.ovl{position:absolute;inset:0;display:none;z-index:50;background:#000a}.ovl.on{display:block}
+.sdd{position:absolute;left:50%;top:50%;width:1120px;transform:translate(-50%,-50%);background:#3b8794;border-radius:12px;padding:56px 64px 36px;box-shadow:0 20px 60px #000b}
+.sdt{font-size:52px;font-weight:500;margin-bottom:26px}.sdm{font-size:38px;line-height:1.4}
+.sdc{display:flex;align-items:center;gap:22px;margin:40px 0 0 -16px;padding:12px 16px;font-size:32px;border-radius:8px;transition:.12s}.sdc.foc{background:#ffffff2e}
+.sdk{width:42px;height:42px;border:4px solid #fff;border-radius:5px;display:grid;place-items:center;font-size:30px;flex:none}.sdk .ms{opacity:0;font-size:32px}.sdk.on{background:#fff;color:#3b8794}.sdk.on .ms{opacity:1}
+.sdr{display:flex;justify-content:flex-end;gap:24px;margin-top:40px}
+.sdb{font-size:34px;font-weight:500;letter-spacing:2px;padding:18px 32px;border-radius:8px;transition:.12s}.sdb.foc{background:#ffffff40}
+/* keyboard */
+#kbd{position:absolute;left:0;right:0;bottom:0;display:none;z-index:40;padding-bottom:28px}#kbd.on{display:block}
+#kbd.inl{background:#1c262cf5;box-shadow:0 -10px 40px #0009}
+.kwrap{width:1354px;margin:0 auto}.kcand{width:1124px;height:76px;display:flex;align-items:center;gap:10px;font-size:34px;font-family:var(--c)}
+.kc{height:60px;line-height:60px;padding:0 24px;border-radius:6px;white-space:nowrap;transition:.1s}.kc.foc{background:#ffffff40}
+.kmain{display:flex;gap:30px}.kgrid{display:flex;flex-direction:column;gap:4px}.krw{display:flex;gap:4px}
+.kk{height:72px;flex:none;display:grid;place-items:center;font-size:38px;font-weight:300;border-radius:6px;transition:.1s}
+.kk .ms{font-size:36px}.kk.s{font-size:26px;font-family:var(--c)}.kk.on{color:var(--teal)}.kk.foc{background:#ffffff40;transform:scale(1.12);z-index:2}
+.kside{width:200px;display:flex;flex-direction:column;gap:16px;justify-content:center}.kside .kk{width:200px}
+.kk.act{height:104px;color:var(--teal);font-size:40px;letter-spacing:2px}.kk.act.foc{background:var(--teal);color:#fff}
+.cmp{text-decoration:underline;text-underline-offset:6px;background:#50e3c233}
+/* error fragment / keyboard switcher */
+#err{background:#000000f2}.erc{position:absolute;left:0;right:0;top:300px;text-align:center}.eri .ms{font-size:230px;color:#fff}
+.erm{font-size:44px;margin:10px auto 0;max-width:1100px;line-height:1.4}.erb{display:inline-block;margin-top:70px;padding:20px 60px;background:#4a4a4a;font-size:34px;letter-spacing:3px;transition:.12s}.erb.foc{background:#fff;color:#222;transform:scale(1.08)}
+#kbsw{background:#101315}#kbsw .sr{background:#1d2124}#kbsw .sic{background:#565c61}.ksl{position:absolute;left:0;right:0;top:420px}
+#sysIn{position:absolute;left:-9999px;top:0;opacity:0}
+#toast{position:absolute;left:50%;bottom:50px;transform:translate(-50%,40px);background:#000d;padding:18px 40px;border-radius:40px;font-size:30px;opacity:0;transition:.3s;z-index:99}#toast.on{opacity:1;transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+<div id="stage">
+
+<!-- トップ画面 (BrowseFragment + 折りたたみサイドパネル) -->
+<section class="scr" id="browse">
+ <div class="nav">
+  <div class="orb" data-f data-act="search"><span class="ms">search</span></div>
+  <div class="hds" id="hds"></div>
+ </div>
+ <div class="ttl gt" id="topTitle">Televini</div>
+ <div class="main" id="rows"></div>
+</section>
+
+<!-- 新規チャット・対話画面 (DetailsFragment ベース) -->
+<section class="scr" id="chat" style="--h:210">
+ <div class="dbg"></div>
+ <div class="ttl gt">Televini</div>
+ <div class="dtc" id="dtc">
+  <div class="dab"></div>
+  <div class="dpn">
+   <div class="dtT" id="chatPrompt">新規チャット</div>
+   <div class="dtS" id="chatMeta">音声またはキーボードで質問を入力してください</div>
+   <div class="dtD" id="chatBody">大画面テレビに最適化された対話画面です。下の「質問を入力」からメッセージを送信するか、映画のおすすめや画像生成をお試しください。</div>
+   <div class="cmsg" id="chatMsgList"></div>
+  </div>
+  <div class="dpo" id="chatArt">
+   <span class="ms" id="chatArtIc">smart_toy</span>
+   <div class="cap" id="chatArtCap">対話待機中</div>
+  </div>
+  <div class="ctb" id="chatBox" data-f data-act="ask">メッセージを入力してください...</div>
+  <div class="csb" id="chatSendBtn" data-f data-act="sendDraft">送信</div>
+  <div class="dbs" id="chatBtns">
+   <div class="db" data-f data-act="ask"><span class="t">キーボード・音声</span><b>質問を入力</b></div>
+   <div class="db" data-f data-act="newchat"><span class="t">履歴を保存して開始</span><b>新規チャット</b></div>
+   <div class="db" data-f data-act="openPrime" id="btnPrime" style="display:none"><span class="t">配信サービスで開く</span><b>プライムビデオ</b></div>
+   <div class="db" data-f data-act="openTube" id="btnTube" style="display:none"><span class="t">動画サイトで開く</span><b>動画サイト</b></div>
+  </div>
+  <div class="dst" id="chatRelTitle">会話履歴・おすすめ</div>
+  <div class="drl" id="drl"></div>
+ </div>
+</section>
+
+<!-- チャット履歴 (VerticalGridFragment ベース) -->
+<section class="scr" id="hist">
+ <div class="orb" data-f data-act="search"><span class="ms">search</span></div>
+ <div class="heb" id="histBar">
+  <div class="hbt" data-f data-act="histDel" id="histDelBtn">選択した履歴を削除</div>
+  <div class="hbt" data-f data-act="histCancel">選択解除</div>
+ </div>
+ <div class="ttl gt">Televini</div>
+ <div class="gb"><div class="gg" id="gg"></div></div>
+</section>
+
+<!-- プロンプト参考・できること (Card Views ベース) -->
+<section class="scr" id="prom">
+ <div class="orb" data-f data-act="search"><span class="ms">search</span></div>
+ <div class="ttl gt">Televini</div>
+ <div class="cvs" id="cvs"></div>
+</section>
+
+<!-- 設定 (Settings ベース) -->
+<section class="scr" id="set">
+ <div class="ttl gt">Televini</div>
+ <div class="sl">
+  <div class="cat" id="scat">設定</div>
+  <div class="nm" id="snm">APIキー設定</div>
+ </div>
+ <div class="sic" id="sic"><span class="ms">key</span></div>
+ <div class="sr">
+  <div class="sh"><span id="sdesc">Gemini APIキーの登録と接続確認</span><i></i></div>
+  <div class="sw" id="sw"></div>
+ </div>
+</section>
+
+<!-- 選択リスト (GuidedStepFragment ベース: 設定の詳細選択用) -->
+<section class="scr" id="list">
+ <div class="ttl gt">Televini</div>
+ <div class="lst"><div class="lh" id="lh">設定の選択</div><div class="lb" id="ll"></div></div>
+</section>
+
+<!-- 検索 (SearchFragment ベース) -->
+<section class="scr" id="s1">
+ <div class="s1o" data-f data-act="mic"><span class="ms">mic</span></div>
+ <div class="sf" id="sf1" data-f data-act="field"></div>
+ <div class="ttl gt">Televini</div>
+ <div class="ttl sT">検索結果</div>
+ <div class="sR" id="sR1"></div>
+</section>
+
+<!-- 入力プロンプト画面 -->
+<section class="scr" id="inp">
+ <div class="ip"><div class="pr" id="inpPr">入力プロンプト</div><div class="fd" id="fd"></div></div>
+</section>
+
+<!-- システム確認ダイアログ (外部リンク起動確認など) -->
+<div class="ovl" id="sys">
+ <div class="sdd">
+  <div class="sdt" id="sdT"></div>
+  <div class="sdm" id="sdM"></div>
+  <div class="sdc" data-f data-act="yk" id="sdC"><i class="sdk" id="sdK"><span class="ms">check</span></i><span id="sdCt"></span></div>
+  <div class="sdr"><div class="sdb" data-f data-act="yc" id="sdX">キャンセル</div><div class="sdb" data-f data-act="yo" id="sdO">開く</div></div>
+ </div>
+</div>
+
+<!-- オンスクリーンキーボード -->
+<div id="kbd">
+ <div class="kwrap">
+  <div class="kcand" id="kcand"></div>
+  <div class="kmain">
+   <div class="kgrid" id="kgrid"></div>
+   <div class="kside">
+    <div class="kk s" data-f id="kglb"><span><span class="ms">language</span> 切替</span></div>
+    <div class="kk act" data-f id="kact">送信</div>
+   </div>
+  </div>
+ </div>
+</div>
+
+<!-- エラーダイアログ -->
+<div class="ovl" id="err">
+ <div class="ttl gt">Televini</div>
+ <div class="erc">
+  <div class="eri"><span class="ms">cloud_off</span></div>
+  <div class="erm" id="erM"></div>
+  <div class="erb" data-f data-act="ed" id="erB">閉じる</div>
+ </div>
+</div>
+
+<!-- キーボード言語切替 -->
+<div class="ovl" id="kbsw">
+ <div class="sl"><div class="cat">設定</div><div class="nm">キーボード</div></div>
+ <div class="sic"><span class="ms">keyboard</span></div>
+ <div class="sr"><div class="ksl" id="kswl"></div></div>
+</div>
+
+<input id="sysIn" type="text" autocomplete="off">
+<div id="toast"></div>
+</div>
+
+<script>
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const I=(n)=>`<span class="ms">${n}</span>`;
+function el(h){const d=document.createElement("div");d.innerHTML=h.trim();return d.firstChild}
+let cur=null,scr="browse",origin=null,tt;
+function toast(t){const e=$("#toast");e.textContent=t;e.classList.add("on");clearTimeout(tt);tt=setTimeout(()=>e.classList.remove("on"),1800)}
+
+/* アプリ状態とデータ */
+const APP={
+ apiKey:localStorage.getItem("tv_api_key")||"",
+ model:localStorage.getItem("tv_model")||"gemini-2.5-flash",
+ fontSize:localStorage.getItem("tv_font")||"標準",
+ tone:localStorage.getItem("tv_tone")||"テレビ向け簡潔",
+ chatUi:localStorage.getItem("tv_chat_ui")||"チャットUI",
+ draft:"",
+ draftComp:"",
+ autoSearch:localStorage.getItem("tv_search")!=="off",
+ curSessionId:null,
+ pendingUrl:"",
+ pendingLabel:""
+};
+
+let SESSIONS=JSON.parse(localStorage.getItem("tv_sessions")||"null")||[
+ {id:"s1",title:"今夜観るSF映画のおすすめ",sub:"ブレードランナー 2049 ほか3作品",hue:210,icon:"movie",hasMedia:true,primeQuery:"ブレードランナー 2049",tubeQuery:"ブレードランナー 2049 予告編",
+  messages:[
+   {role:"user",text:"今夜テレビの大画面で観るのにぴったりなSF映画を教えて"},
+   {role:"ai",text:"大画面の映像美を楽しめるSF映画を3本厳選しました。\n1. ブレードランナー 2049：圧倒的な音響と色彩設計が魅力です。\n2. メッセージ：静かで知的なファーストコンタクト作品です。\n3. インターステラー：宇宙空間のスケール感を堪能できます。\n下のボタンから配信サービスや予告編をすぐ開けます。",artIcon:"movie",artLabel:"おすすめ映画: SF大作"}
+  ]},
+ {id:"s2",title:"雨の日のネオン街の風景画像",sub:"画像生成・ビジュアル表示",hue:280,icon:"image",hasMedia:false,
+  messages:[
+   {role:"user",text:"雨の日の静かなネオン街の風景を描写して画像を見せて"},
+   {role:"ai",text:"濡れたアスファルトに看板の明かりが反射する、深夜の路地裏のビジュアルを生成しました。落ち着いた雨音とともにリラックスできる雰囲気です。",artIcon:"landscape",artLabel:"生成ビジュアル: 雨のネオン街"}
+  ]},
+ {id:"s3",title:"30分で作れる温かい夜食レシピ",sub:"鶏だし雑炊・きのこスープ",hue:35,icon:"restaurant",hasMedia:false,
+  messages:[
+   {role:"user",text:"冷蔵庫にある卵とご飯で簡単に作れる温かい夜食は？"},
+   {role:"ai",text:"10分でできる「ふんわり卵の鶏だし雑炊」がおすすめです。水300mlに鶏ガラスープの素小さじ2、ご飯1膳を入れて煮立たせ、溶き卵を回し入れて蓋をし30秒蒸らすだけで完成します。",artIcon:"soup_kitchen",artLabel:"レシピ提案: 鶏だし雑炊"}
+  ]},
+ {id:"s4",title:"明日の東京の天気と服装アドバイス",sub:"晴れ時々曇り・最高気温18度",hue:160,icon:"wb_sunny",hasMedia:false,
+  messages:[
+   {role:"user",text:"明日の東京の天気とおすすめの服装を教えて"},
+   {role:"ai",text:"明日の東京は日中は日差しが届き、過ごしやすくなります。朝晩は冷え込むため、薄手のニットにジャケットやトレンチコートを羽織るのがおすすめです。",artIcon:"checkroom",artLabel:"天気と服装ガイド"}
+  ]}
+];
+
+function saveSessions(){localStorage.setItem("tv_sessions",JSON.stringify(SESSIONS))}
+
+const PROMPTS=[
+ {cat:"映画・動画を探す (配信リンク連携)",items:[
+  {t:"泣けるヒューマンドラマ映画",s:"名作映画と配信リンクを提案",ic:"movie",q:"週末にじっくり観たい泣けるヒューマンドラマ映画をおすすめして"},
+  {t:"話題のアニメ映画ランキング",s:"ファミリーで楽しめる作品",ic:"theaters",q:"家族みんなで楽しめるおすすめのアニメ映画を教えて"},
+  {t:"作業用・環境映像を探す",s:"焚き火や自然の4K映像",ic:"live_tv",q:"テレビで流しっぱなしにできる焚き火や自然の癒やし映像を探して"},
+  {t:"名作アクション映画の予告編",s:"迫力ある映像作品",ic:"local_movies",q:"大画面で観ると迫力がある名作アクション映画を教えて"}
+ ]},
+ {cat:"画像を表示する・ビジュアル生成",items:[
+  {t:"宇宙から見た夜の地球",s:"高精細イメージを表示",ic:"public",q:"宇宙から見た夜の地球の美しい風景画像を生成して見せて"},
+  {t:"北欧風の落ち着いたリビング",s:"インテリアのイメージ表示",ic:"chair",q:"暖炉のある北欧風の落ち着いたリビングの画像を生成して"},
+  {t:"幻想的な森と星空のイラスト",s:"アートビジュアルを表示",ic:"forest",q:"ホタルが舞う幻想的な夜の森と満天の星空の絵を見せて"},
+  {t:"近未来のサイバー都市",s:"SFコンセプトアート",ic:"apartment",q:"モノレールが走る近未来のクリーンな都市の画像を生成して"}
+ ]},
+ {cat:"テレビの活用・暮らしの相談",items:[
+  {t:"今日のニュースを3行で要約",s:"最新トピックを簡潔に解説",ic:"newspaper",q:"今日の主要なニュースの話題をテレビで読みやすく3行で教えて"},
+  {t:"リビングでできる5分ストレッチ",s:"テレビを見ながら健康習慣",ic:"fitness_center",q:"テレビの前で座ったままできる肩こり解消ストレッチを教えて"},
+  {t:"今夜の献立アイデア",s:"冷蔵庫の食材から提案",ic:"skillet",q:"豚バラ肉とキャベツを使った簡単で美味しい夕食レシピを教えて"},
+  {t:"子ども向けのクイズ大会",s:"家族で遊べる三択クイズ",ic:"quiz",q:"家族みんなで盛り上がれる動物に関する面白いクイズを出して"}
+ ]}
+];
+
+/* サイドパネル項目 */
+const NAV=[
+ ["home","トップ画面","home"],
+ ["newchat","新規チャット","add_comment"],
+ ["hist","今までのチャット履歴","history"],
+ ["prom","プロンプト参考","auto_awesome"],
+ ["set","設定","settings"]
+];
+NAV.forEach(([k,t,ic],i)=>$("#hds").append(el(`<div class="hd${i?"":" sel"}" data-f data-go="${k}">${I(ic)}<span class="tx">${t}</span></div>`)));
+
+/* トップ画面 (BrowseFragment) の行構築 */
+function renderBrowse(){
+ const r=$("#rows");r.innerHTML="";
+ // 行1: すべての機能・クイックアクセス
+ const b1=el('<div class="blk act"><div class="sec">すべての機能</div><div class="row"></div></div>');
+ const actions=[
+  ["newchat","新規チャット","add_comment"],
+  ["hist","チャット履歴","history"],
+  ["prom","プロンプト参考","auto_awesome"],
+  ["movie_quick","映画を探す","movie"],
+  ["image_quick","画像を表示","image"],
+  ["set","設定","settings"]
+ ];
+ actions.forEach(([k,t,ic])=>{
+  const g=el(`<div class="gi" data-f data-go="${k}">${I(ic)}<span>${t}</span></div>`);
+  $(".row",b1).append(g);
+ });
+ r.append(b1);
+
+ // 行2: 最近のチャット履歴
+ const b2=el('<div class="blk"><div class="sec">最近のチャット履歴</div><div class="row"></div></div>');
+ SESSIONS.forEach((s,i)=>{
+  const c=el(`<div class="card cp" data-f style="--h:${s.hue}"><div class="im">${I(s.icon)}</div><div class="in"><div class="t">${esc(s.title)}</div><div class="s">${esc(s.sub)}</div></div></div>`);
+  c._a=()=>openSession(s.id);
+  $(".row",b2).append(c);
+ });
+ r.append(b2);
+
+ // 行3: おすすめのプロンプト
+ const b3=el('<div class="blk"><div class="sec">おすすめのプロンプト</div><div class="row"></div></div>');
+ PROMPTS.flatMap(g=>g.items).slice(0,6).forEach((p,i)=>{
+  const c=el(`<div class="card cp" data-f style="--h:${(i*55+190)%360}"><div class="im">${I(p.ic)}</div><div class="in"><div class="t">${esc(p.t)}</div><div class="s">${esc(p.s)}</div></div></div>`);
+  c._a=()=>startNewChatWithPrompt(p.q);
+  $(".row",b3).append(c);
+ });
+ r.append(b3);
+
+ // 行4: 設定ショートカット
+ const b4=el('<div class="blk"><div class="sec">設定</div><div class="row"></div></div>');
+ const setItems=[
+  ["APIキー設定",APP.apiKey?"登録済み":"未設定","key",0],
+  ["使用モデル",APP.model,"memory",1],
+  ["チャット文字サイズ",APP.fontSize,"format_size",2],
+  ["応答スタイル",APP.tone,"chat",3]
+ ];
+ setItems.forEach(([t,sub,ic,idx])=>{
+  const c=el(`<div class="card cp" data-f style="--h:210"><div class="im">${I(ic)}</div><div class="in"><div class="t">${t}</div><div class="s">${sub}</div></div></div>`);
+  c._a=()=>{go("set",c);setTimeout(()=>{const se=$$("#sw .se")[idx];if(se)focus(se)},50)};
+  $(".row",b4).append(c);
+ });
+ r.append(b4);
+}
+
+/* チャット履歴画面 (VerticalGridFragment) */
+let histSelMode=false,histSelected=new Set(),holdTimer=null,holdFired=false;
+function toggleHistSelect(id){
+ if(histSelected.has(id))histSelected.delete(id);
+ else histSelected.add(id);
+ if(histSelected.size===0){
+  histSelMode=false;
+  $("#histBar").classList.remove("on");
+ }else{
+  $("#histDelBtn").textContent=`選択した履歴を削除 (${histSelected.size}件)`;
+ }
+ renderHist(id);
+}
+function enterHistSelect(id){
+ histSelMode=true;
+ histSelected=new Set([id]);
+ $("#histBar").classList.add("on");
+ $("#histDelBtn").textContent="選択した履歴を削除 (1件)";
+ renderHist(id);
+ toast("選択モード：決定で選択切替 / 上ボタンで削除");
+}
+function exitHistSelect(){
+ histSelMode=false;
+ histSelected.clear();
+ $("#histBar").classList.remove("on");
+ renderHist();
+ const first=$("#gg .gc");
+ if(first)focus(first);
+}
+function renderHist(keepId){
+ const g=$("#gg");g.innerHTML="";
+ SESSIONS.forEach(s=>{
+  const isSel=histSelMode&&histSelected.has(s.id);
+  const c=el(`<div class="card gc${isSel?" sel":""}" data-f data-sid="${s.id}" style="--h:${s.hue}"><div class="im">${I(isSel?"check_circle":s.icon)}</div><div class="in"><div class="t">${esc(s.title)}</div><div class="s">${isSel?"選択中":esc(s.sub)}</div></div></div>`);
+  c._a=()=>{
+   if(histSelMode)toggleHistSelect(s.id);
+   else openSession(s.id);
+  };
+  g.append(c);
+  if(keepId&&s.id===keepId)focus(c);
+ });
+}
+
+/* プロンプト参考画面 (Card Views) */
+function renderProm(){
+ const cv=$("#cvs");cv.innerHTML="";
+ PROMPTS.forEach((grp,r)=>{
+  const k=el(`<div class="cvk${r?"":" act"}"><div class="cvt">${grp.cat}</div><div class="cvr"></div></div>`);
+  grp.items.forEach((p,i)=>{
+   const cls=r===0?"cvbd":"cva";
+   const c=el(`<div class="card ${cls}" data-f style="--h:${(r*90+i*45+180)%360}"><div class="im">${I(p.ic)}</div><div class="in"><div class="t">${esc(p.t)}</div><div class="s">${esc(p.s)}</div>${r===0?'<span class="bdg ms">play_arrow</span><span class="xt">送信</span>':''}</div></div>`);
+   c._a=()=>startNewChatWithPrompt(p.q);
+   $(".cvr",k).append(c);
+  });
+  cv.append(k);
+ });
+}
+
+/* チャット対話ロジック (DetailsFragment ベース) */
+function openSession(id){
+ const s=SESSIONS.find(x=>x.id===id);
+ if(!s)return;
+ APP.curSessionId=s.id;
+ updateChatView(s);
+ go("chat");
+}
+
+function startNewChatWithPrompt(promptText){
+ APP.curSessionId=null;
+ APP.draft="";
+ APP.draftComp="";
+ go("chat");
+ sendChatMessage(promptText);
+}
+
+function renderChatBox(){
+ const box=$("#chatBox");
+ if(box)fieldTxt(box,APP.draft,APP.draftComp,"メッセージを入力してください...");
+}
+
+function updateChatView(s){
+ $("#chat").classList.toggle("lg",APP.fontSize==="大");
+ $("#chat").classList.toggle("cui",APP.chatUi==="チャットUI");
+ $("#chat").classList.remove("rel");
+ $("#drl").scrollLeft=0;
+ renderChatBox();
+ const list=$("#chatMsgList");
+ if(list)list.innerHTML="";
+ if(!s){
+  $("#chat").style.setProperty("--h",210);
+  $("#chatPrompt").textContent="新規チャット";
+  $("#chatMeta").textContent=APP.apiKey?"接続準備完了 · 上のテキストボックスから入力して送信してください":"APIキー未設定（デモ応答モードで動作中）";
+  $("#chatBody").textContent="大画面テレビに最適化された対話画面です。映画のおすすめを聞くと配信サービスや動画サイトのボタンが表示され、風景やイラストを頼むと左側のパネルにビジュアルが表示されます。";
+  if(list)list.append(el('<div class="cm">こんにちは。上のテキストボックスから質問を入力して「送信」を押してください。</div>'));
+  $("#chatArtIc").textContent="smart_toy";
+  $("#chatArtCap").textContent="新しい会話";
+  $("#btnPrime").style.display="none";
+  $("#btnTube").style.display="none";
+ }else{
+  $("#chat").style.setProperty("--h",s.hue||210);
+  const lastUser=[...s.messages].reverse().find(m=>m.role==="user");
+  const lastAi=[...s.messages].reverse().find(m=>m.role==="ai");
+  $("#chatPrompt").textContent=lastUser?lastUser.text:s.title;
+  $("#chatMeta").textContent=`会話ターン数: ${Math.ceil(s.messages.length/2)} · モデル: ${APP.model}`;
+  $("#chatBody").innerText=lastAi?lastAi.text:"応答を生成中...";
+  $("#chatBody").scrollTop=0;
+  if(list){
+   s.messages.forEach(m=>{
+    list.append(el(`<div class="cm${m.role==="user"?" u":""}">${esc(m.text).replace(/\n/g,"<br>")}</div>`));
+   });
+   list.scrollTop=list.scrollHeight;
+  }
+  $("#chatArtIc").textContent=(lastAi&&lastAi.artIcon)||s.icon||"smart_toy";
+  $("#chatArtCap").textContent=(lastAi&&lastAi.artLabel)||s.title;
+  if(s.hasMedia){
+   $("#btnPrime").style.display="flex";
+   $("#btnTube").style.display="flex";
+  }else{
+   $("#btnPrime").style.display="none";
+   $("#btnTube").style.display="none";
+  }
+ }
+ // 下部関連行に最近の履歴とプロンプトを表示
+ const drl=$("#drl");drl.innerHTML="";
+ SESSIONS.forEach(item=>{
+  const c=el(`<div class="card gc" data-f style="--h:${item.hue}"><div class="im">${I(item.icon)}</div><div class="in"><div class="t">${esc(item.title)}</div><div class="s">履歴を再開</div></div></div>`);
+  c._a=()=>openSession(item.id);
+  drl.append(c);
+ });
+}
+
+async function sendChatMessage(text){
+ const q=text.trim();
+ if(!q)return;
+ let s=SESSIONS.find(x=>x.id===APP.curSessionId);
+ if(!s){
+  const isMovie=/映画|アニメ|ドラマ|動画|観たい|おすすめ/.test(q);
+  const isImage=/画像|絵|イラスト|写真|風景|ビジュアル|見せて/.test(q);
+  s={
+   id:"s_"+Date.now(),
+   title:q.slice(0,22),
+   sub:isMovie?"映画・動画の提案":isImage?"ビジュアル表示":"AI対話セッション",
+   hue:isMovie?205:isImage?285:165,
+   icon:isMovie?"movie":isImage?"image":"chat",
+   hasMedia:isMovie,
+   primeQuery:q,
+   tubeQuery:q+" 予告編",
+   messages:[]
+  };
+  SESSIONS.unshift(s);
+  APP.curSessionId=s.id;
+ }
+ s.messages.push({role:"user",text:q});
+ s.messages.push({role:"ai",text:"回答を作成しています...",artIcon:"hourglass_top",artLabel:"生成中..."});
+ updateChatView(s);
+
+ const reply=await generateResponse(q,s);
+ s.messages[s.messages.length-1]=reply;
+ if(reply.isMovie){
+  s.hasMedia=true;
+  s.primeQuery=reply.movieTitle||q;
+  s.tubeQuery=(reply.movieTitle||q)+" 予告編";
+  s.icon="movie";
+ }
+ if(reply.isImage){
+  s.icon="image";
+ }
+ s.sub=reply.artLabel||s.sub;
+ saveSessions();
+ renderBrowse();
+ renderHist();
+ updateChatView(s);
+ focus($("#chatBtns .db"));
+}
+
+async function generateResponse(q,session){
+ const isMovie=/映画|アニメ|ドラマ|動画|観たい/.test(q);
+ const isImage=/画像|絵|イラスト|写真|風景|ビジュアル|見せて/.test(q);
+
+ // APIキーが設定されている場合はGemini APIへリクエスト
+ if(APP.apiKey){
+  try{
+   const sysInst=`あなたはテレビ画面向けAIアシスタント「Televini」です。${APP.tone==="テレビ向け簡潔"?"テレビで読みやすいよう150文字以内で簡潔に":"丁寧かつ分かりやすく"}日本語で回答してください。映画の質問には具体的な作品名を1つ以上挙げてください。`;
+   const url=`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(APP.model)}:generateContent?key=${encodeURIComponent(APP.apiKey)}`;
+   const res=await fetch(url,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+     systemInstruction:{parts:[{text:sysInst}]},
+     contents:[{role:"user",parts:[{text:q}]}]
+    })
+   });
+   if(!res.ok)throw new Error("API通信エラー ("+res.status+")");
+   const data=await res.json();
+   const out=data.candidates?.[0]?.content?.parts?.[0]?.text||"回答を取得できませんでした。";
+   const mMatch=out.match(/「([^」]+)」/);
+   return {
+    role:"ai",
+    text:out,
+    isMovie:isMovie,
+    isImage:isImage,
+    movieTitle:mMatch?mMatch[1]:q,
+    artIcon:isMovie?"movie":isImage?"image":"smart_toy",
+    artLabel:isMovie?"おすすめ作品":isImage?"生成イメージ":"AI回答"
+   };
+  }catch(err){
+   openOv("err",1);
+   return {
+    role:"ai",
+    text:"APIキーでの通信に失敗したため、ローカル応答を表示しています。\n設定画面からAPIキーを確認してください。",
+    isMovie:isMovie,
+    isImage:isImage,
+    movieTitle:q,
+    artIcon:"error_outline",
+    artLabel:"通信エラー"
+   };
+  }
+ }
+
+ // APIキー未設定時のオフライン・デモ応答
+ await new Promise(r=>setTimeout(r,450));
+ if(isMovie){
+  const title=q.includes("アニメ")?"君の名は。":q.includes("アクション")?"マッドマックス 怒りのデス・ロード":"ショーシャンクの空に";
+  return {
+   role:"ai",
+   text:`テレビの大画面で楽しむなら「${title}」がおすすめです。\n映像美とストーリーの完成度が非常に高く、リビングでの鑑賞に最適です。\n下の「プライムビデオ」または「動画サイト」ボタンから直接作品ページや予告編を開けます。`,
+   isMovie:true,
+   movieTitle:title,
+   artIcon:"movie",
+   artLabel:`おすすめ: ${title}`
+  };
+ }
+ if(isImage){
+  const ic=q.includes("宇宙")||q.includes("地球")?"public":q.includes("森")||q.includes("星")?"forest":q.includes("リビング")?"chair":"image";
+  return {
+   role:"ai",
+   text:`リクエストに合わせて「${q}」のビジュアルイメージを生成しました。\n左側のディスプレイパネルにプレビューを表示しています。続けて「もう少し明るく」「夜空を追加して」のように調整もできます。`,
+   isImage:true,
+   artIcon:ic,
+   artLabel:`生成画像: ${q.slice(0,14)}`
+  };
+ }
+ return {
+  role:"ai",
+  text:`「${q}」についてまとめました。\nテレビ画面で見やすいよう要点を整理しています。さらに詳しく知りたい場合や、関連する動画を探したい場合は下の「質問を入力」から続けて話しかけてください。\n（※設定画面でAPIキーを登録するとリアルタイムのAI応答に切り替わります）`,
+  isMovie:false,
+  isImage:false,
+  artIcon:"smart_toy",
+  artLabel:"回答完了"
+ };
+}
+
+/* 設定画面とリスト選択画面 */
+let listCallback=null;
+function openChoiceList(title,options,currentVal,onSelect){
+ $("#lh").textContent=title;
+ const ll=$("#ll");ll.innerHTML="";
+ options.forEach((opt,i)=>{
+  const checked=opt===currentVal;
+  const e=el(`<div class="li" data-f><b>${String(i+1).padStart(2,"0")}</b><span>${esc(opt)}</span><div class="bx">${checked?I("check"):""}</div></div>`);
+  e._a=()=>{
+   onSelect(opt);
+   renderSettings();
+   renderBrowse();
+   go("set");
+  };
+  ll.append(e);
+ });
+ listCallback=onSelect;
+ go("list");
+}
+
+function renderSettings(){
+ const sw=$("#sw");sw.innerHTML="";
+ const items=[
+  {name:"APIキー設定",cat:"接続設定",ic:"key",desc:"Gemini APIキーの登録・変更",sub:APP.apiKey?"登録済み (••••••••"+APP.apiKey.slice(-4)+")":"未設定（クリックして入力）",
+   act:()=>kbOpen({prompt:true,promptText:"APIキーを入力",text:APP.apiKey,action:"保存",onDone:t=>{
+    APP.apiKey=t.trim();
+    localStorage.setItem("tv_api_key",APP.apiKey);
+    toast(APP.apiKey?"APIキーを保存しました":"APIキーをクリアしました");
+    renderSettings();renderBrowse();go("set");
+   }})},
+  {name:"チャットUI",cat:"表示設定",ic:"forum",desc:"対話画面の表示形式を切り替え",sub:APP.chatUi,
+   act:()=>openChoiceList("チャットUIを選択",["チャットUI","詳細パネル表示"],APP.chatUi,v=>{APP.chatUi=v;localStorage.setItem("tv_chat_ui",v);toast("チャットUIを変更しました")})},
+  {name:"使用モデル",cat:"AI設定",ic:"memory",desc:"応答生成に使用するモデルの選択・直接入力",sub:APP.model,
+   act:()=>openChoiceList("使用モデルを選択",["gemini-2.5-flash","gemini-2.5-pro","gemini-2.0-flash","モデル名を直接入力..."],APP.model,v=>{
+    if(v==="モデル名を直接入力..."){
+     kbOpen({prompt:true,layout:"en",promptText:"モデル名を入力",text:APP.model,action:"保存",onDone:t=>{
+      const m=t.trim();
+      if(m){APP.model=m;localStorage.setItem("tv_model",m);toast("モデルを変更しました")}
+      renderSettings();renderBrowse();go("set");
+     }});
+     return;
+    }
+    APP.model=v;localStorage.setItem("tv_model",v);toast("モデルを変更しました");
+   })},
+  {name:"チャット文字サイズ",cat:"表示設定",ic:"format_size",desc:"対話画面のテキストサイズ切り替え",sub:APP.fontSize,
+   act:()=>openChoiceList("文字サイズを選択",["標準","大"],APP.fontSize,v=>{APP.fontSize=v;localStorage.setItem("tv_font",v);toast("文字サイズを変更しました")})},
+  {name:"応答スタイル",cat:"AI設定",ic:"chat",desc:"テレビ画面向けの文章の長さを調整",sub:APP.tone,
+   act:()=>openChoiceList("応答スタイルを選択",["テレビ向け簡潔","標準・詳細"],APP.tone,v=>{APP.tone=v;localStorage.setItem("tv_tone",v);toast("応答スタイルを変更しました")})},
+  {name:"履歴データの消去",cat:"ストレージ",ic:"delete",desc:"保存されたすべてのチャット履歴を削除",sub:`現在の保存件数: ${SESSIONS.length}件`,
+   act:()=>openOv("sys",1)}
+ ];
+ items.forEach(it=>{
+  const e=el(`<div class="se" data-f><div class="a">${it.name}</div><div class="b">${esc(it.sub)}</div></div>`);
+  e._f=()=>{$("#scat").textContent=it.cat;$("#snm").textContent=it.name;$("#sdesc").textContent=it.desc;$("#sic").innerHTML=I(it.ic)};
+  e._a=it.act;
+  sw.append(e);
+ });
+}
+
+/* キーボード API : TVKeyboard */
+const esc=t=>String(t).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+function fieldTxt(f,t,c,ph){const base=c&&t.endsWith(c)?t.slice(0,-c.length):t;if(!t){f.textContent=ph;f.classList.remove("q")}else{f.innerHTML=esc(base)+(c?`<u class="cmp">${esc(c)}</u>`:"");f.classList.add("q")}}
+const KB={open:false,mode:"inline",layout:"ja",base:"ja",shift:false,text:"",comp:"",cb:null,done:null,field:null,li:0};let KBP=null,kbRet="browse";
+const DICT={"えいが":["映画","映画館"],"おすすめ":["おすすめ"],"あにめ":["アニメ"],"がぞう":["画像"],"うちゅう":["宇宙"],"もり":["森"],"てんき":["天気"],"れしぴ":["レシピ"],"てれび":["テレビ"],"りびんぐ":["リビング"],"ほしぞら":["星空"],"どらま":["ドラマ"]};
+const GRP="かが|きぎ|くぐ|けげ|こご|さざ|しじ|すず|せぜ|そぞ|ただ|ちぢ|つづっ|てで|とど|はばぱ|ひびぴ|ふぶぷ|へべぺ|ほぼぽ|うゔぅ|あぁ|いぃ|えぇ|おぉ|やゃ|ゆゅ|よょ|わゎ".split("|");
+const kata=t=>[...t].map(c=>/[ぁ-ゖ]/.test(c)?String.fromCharCode(c.charCodeAt(0)+96):c).join("");
+function cands(){if(KB.layout!="ja"||!KB.comp)return[];const c=KB.comp,o=[],add=x=>x&&!o.includes(x)&&o.push(x);(DICT[c]||[]).forEach(add);Object.keys(DICT).filter(k=>k!=c&&k.startsWith(c)).forEach(k=>DICT[k].forEach(add));add(kata(c));add(c);return o.slice(0,8)}
+function rowsFor(){const L=KB.layout,r=t=>[...t].map(c=>({l:KB.shift?c.toUpperCase():c,k:"ch"})),bs=w=>({l:I("backspace"),k:"bs",w});
+ if(L=="ja"){const q=["あかさたなはまやらわ","いきしちにひみ゛り小","うくすつぬふむゆるを","えけせてねへめ゜れ？","おこそとのほもよろん"].map(r);
+  q[0].push({l:"ー",k:"ch"},bs());q[1].push({l:"、",k:"ch"},{l:"あA",k:"kana",s:1});q[2].push({l:"。",k:"ch"},{l:"変換",k:"conv",s:1});q[3].push({l:"！",k:"ch"},{l:"確定",k:"ok",s:1});q[4].push({l:"空白",k:"space",s:1},{l:"記号",k:"sym",s:1});return q}
+ if(L=="en")return[[...r("1234567890"),bs(2)],r("qwertyuiop@-"),r("asdfghjkl_&'"),[{l:I("shift"),k:"shift",on:KB.shift},...r("zxcvbnm,.?!")],[{l:"記号",k:"sym",w:2,s:1},{l:"空白",k:"space",w:6,s:1},{l:"あA",k:"kana",w:2,s:1},...r("/:")]];
+ return[[...r("!@#$%^&*()"),bs(2)],r("-_=+[]{}|\\~`"),r(";:'\",.<>/?¥€"),r("「」『』・〜…※→←↑↓"),[{l:"ABC",k:"abc",w:2,s:1},{l:"空白",k:"space",w:8,s:1},...r("。、")]]}
+function kbBuild(keep){const g=$("#kgrid"),ci=$$(".kk",g).indexOf(cur);g.innerHTML="";
+ rowsFor().forEach(r=>{const row=el('<div class="krw"></div>');r.forEach(k=>{const w=k.w||1,e=el(`<div class="kk${k.s?" s":""}${k.on?" on":""}" data-f style="width:${w*90+(w-1)*4}px">${k.l}</div>`);e._a=()=>{KB.li=$$(".kk",g).indexOf(e);kbPress(k)};row.append(e)});g.append(row)});
+ if(keep&&ci>=0){const ks=$$(".kk",g);focus(ks[Math.min(ci,ks.length-1)])}}
+function kbFocusLast(){const ks=$$("#kgrid .kk");focus(ks[Math.min(KB.li||0,ks.length-1)])}
+function kbChg(){const cb=$("#kcand");cb.innerHTML="";cands().forEach(x=>{const e=el(`<div class="kc" data-f>${esc(x)}</div>`);e._a=()=>{KB.text+=x;KB.comp="";kbChg();kbFocusLast()};cb.append(e)});
+ if(KB.mode=="prompt"){const f=$("#fd");fieldTxt(f,KB.text+KB.comp,KB.comp,"");f.scrollLeft=1e5}KB.cb&&KB.cb(KB.text+KB.comp,KB.comp)}
+function kbMod(){const c=KB.comp.slice(-1),g=GRP.find(x=>x.includes(c));if(!g)return;KB.comp=KB.comp.slice(0,-1)+g[(g.indexOf(c)+1)%g.length];kbChg()}
+function kbChar(c){if(KB.layout=="ja"){if("゛゜小".includes(c))return kbMod();if(/[ぁ-んー]/.test(c)){KB.comp+=c;return kbChg()}}
+ KB.text+=KB.comp+c;KB.comp="";const sh=KB.layout=="en"&&KB.shift;if(sh)KB.shift=false;kbChg();if(sh)kbBuild(true)}
+function kbBack(){if(KB.comp)KB.comp=KB.comp.slice(0,-1);else KB.text=KB.text.slice(0,-1);kbChg()}
+function kbPress(k){const c=k.k;
+ if(c=="bs")kbBack();
+ else if(c=="shift"){KB.shift=!KB.shift;kbBuild(true)}
+ else if(c=="sym"){KB.base=KB.layout;KB.layout="sym";kbBuild(true)}
+ else if(c=="abc"){KB.layout=KB.base;kbBuild(true)}
+ else if(c=="kana"){KB.layout=KB.layout=="ja"?"en":"ja";KB.base=KB.layout;KB.shift=false;kbBuild(true)}
+ else if(c=="space"){if(KB.layout=="ja"&&KB.comp){KB.text+=cands()[0];KB.comp="";kbChg()}else kbChar(" ")}
+ else if(c=="conv"){const e=$(".kc");e?focus(e):toast("変換する文字がありません")}
+ else if(c=="ok"){KB.text+=KB.comp;KB.comp="";kbChg()}
+ else kbChar(k.l)}
+function kbOpen(o={}){if(o.prompt&&scr!="inp"){KBP=o;kbRet=scr;return go("inp")}
+ Object.assign(KB,{open:true,mode:o.prompt?"prompt":"inline",text:o.text||"",comp:"",cb:o.onChange||null,done:o.onDone||null,field:o.field||null,shift:false});
+ if(o.layout){KB.layout=o.layout;if(o.layout!="sym")KB.base=o.layout}
+ if(o.prompt)$("#inpPr").textContent=o.promptText||"入力プロンプト";
+ $("#kact").textContent=o.action||(o.prompt?"保存":"送信");$("#kbd").className="on "+(o.prompt?"pm":"inl");
+ kbBuild();kbChg();focus($$("#kgrid .kk")[0]);
+ if(KB.layout==="sys")openSysKeyboard();}
+function openSysKeyboard(){
+ const si=$("#sysIn");
+ si.value=KB.text;
+ si.focus();
+ toast("システムキーボードで入力してください");
+}
+$("#sysIn").addEventListener("input",e=>{
+ if(!KB.open)return;
+ KB.text=e.target.value;
+ KB.comp="";
+ kbChg();
+});
+$("#sysIn").addEventListener("keydown",e=>{
+ if(e.key==="Enter"&&KB.open){
+  e.preventDefault();
+  e.stopPropagation();
+  $("#sysIn").blur();
+  kbDone();
+ }
+});
+function kbClose(refocus){if(!KB.open)return;$("#sysIn").blur();KB.text+=KB.comp;KB.comp="";KB.cb&&KB.cb(KB.text,"");KB.open=false;$("#kbd").className="";if(refocus&&KB.field)focus(KB.field)}
+function kbDone(){$("#sysIn").blur();KB.text+=KB.comp;KB.comp="";kbChg();const t=KB.text,d=KB.done;if(KB.mode=="inline")kbClose(false);d&&d(t)}
+$("#kglb")._a=()=>openOv("kbsw");$("#kact")._a=kbDone;
+window.TVKeyboard={open:kbOpen,close:()=>kbClose(true),get text(){return KB.text+KB.comp}};
+
+/* 検索画面 */
+let Q="",QC="",prevS="browse";
+function renderS(){
+ const q=Q.toLowerCase();
+ const f1=$("#sf1");
+ fieldTxt(f1,Q,QC,"履歴やプロンプトを検索");
+ const r1=$("#sR1");r1.innerHTML="";
+ const pool=[
+  ...SESSIONS.map(s=>({t:s.title,s:"チャット履歴",ic:s.icon,go:()=>openSession(s.id)})),
+  ...PROMPTS.flatMap(g=>g.items).map(p=>({t:p.t,s:p.s,ic:p.ic,go:()=>startNewChatWithPrompt(p.q)}))
+ ];
+ const res=q?pool.filter(d=>(d.t+d.s).toLowerCase().includes(q)):pool.slice(0,5);
+ res.forEach((d,i)=>{
+  const c=el(`<div class="card rc" data-f style="--h:${170+i*25}"><div class="im">${I(d.ic)}</div><div class="in"><div class="t">${esc(d.t)}</div><div class="s">${esc(d.s)}</div></div></div>`);
+  c._a=d.go;
+  r1.append(c);
+ });
+ if(!res.length)r1.append(el('<div class="none">一致する項目がありません</div>'));
+ if(cur&&!document.contains(cur)&&scr=="s1")focus($("#s1 [data-f]:nth-child(2)"));
+}
+
+/* アクション定義 */
+const ACT={
+ search:()=>{prevS=scr;go("s1")},
+ mic:()=>{Q="映画";renderS();toast("音声入力: 映画")},
+ field:()=>{const f=$("#sf1");kbOpen({prompt:false,text:Q,field:f,action:"検索",onChange:(t,c)=>{Q=t;QC=c;renderS()},onDone:()=>{QC="";renderS();focus($$("#s1 .card")[0]||f)}})},
+ ask:()=>{
+  kbOpen({
+   prompt:false,
+   text:APP.draft,
+   field:$("#chatBox"),
+   action:"送信",
+   onChange:(t,c)=>{APP.draft=t;APP.draftComp=c;renderChatBox()},
+   onDone:t=>{
+    APP.draft=t;
+    APP.draftComp="";
+    renderChatBox();
+    if(t.trim()){
+     APP.draft="";
+     renderChatBox();
+     sendChatMessage(t);
+    }else{
+     focus($("#chatBox"));
+    }
+   }
+  });
+ },
+ sendDraft:()=>{
+  const t=(APP.draft+APP.draftComp).trim();
+  if(!t)return ACT.ask();
+  APP.draft="";
+  APP.draftComp="";
+  renderChatBox();
+  sendChatMessage(t);
+ },
+ newchat:()=>{
+  APP.curSessionId=null;
+  APP.draft="";
+  APP.draftComp="";
+  updateChatView(null);
+  focus($("#chatBox"));
+  toast("新しいチャットを開始しました");
+ },
+ histDel:()=>{
+  if(!histSelected.size)return;
+  SESSIONS=SESSIONS.filter(s=>!histSelected.has(s.id));
+  saveSessions();
+  renderBrowse();
+  exitHistSelect();
+  toast("選択した履歴を削除しました");
+ },
+ histCancel:()=>exitHistSelect(),
+ openPrime:()=>{
+  const s=SESSIONS.find(x=>x.id===APP.curSessionId);
+  const q=s?s.primeQuery:"おすすめ映画";
+  APP.pendingUrl="https://www.amazon.co.jp/s?k="+encodeURIComponent(q)+"&i=instant-video";
+  APP.pendingLabel="プライムビデオで「"+q+"」を検索して開きますか？";
+  openOv("sys",0);
+ },
+ openTube:()=>{
+  const s=SESSIONS.find(x=>x.id===APP.curSessionId);
+  const q=s?s.tubeQuery:"おすすめ映画 予告編";
+  APP.pendingUrl="https://www.youtube.com/results?search_query="+encodeURIComponent(q);
+  APP.pendingLabel="動画サイトで「"+q+"」の関連映像を開きますか？";
+  openOv("sys",0);
+ }
+};
+
+/* ダイアログ管理 (システム確認・エラー・キーボード切替) */
+const OV={sys:1,err:1,kbsw:1};let under=null,ovFrom=null;
+const SYS=[
+ {title:"外部サービスを開く",msg:"",chk:"次回から確認せずに開く",no:"キャンセル",ok:"開く"},
+ {title:"履歴の消去",msg:"保存されているすべてのチャット履歴を削除します。この操作は元に戻せません。",chk:"",no:"キャンセル",ok:"削除"}
+];
+const ERRS=[
+ {msg:"エラーが発生しました",btn:"閉じる"},
+ {msg:"APIサーバーに接続できません。設定画面のAPIキーとネットワーク接続を確認してください。",btn:"閉じる"}
+];
+let sysMode=0;
+function openOv(id,n){
+ under=scr;ovFrom=cur;let f;
+ if(id=="sys"){
+  sysMode=n||0;
+  const y=SYS[sysMode];
+  $("#sdT").textContent=y.title;
+  $("#sdM").textContent=sysMode===0?APP.pendingLabel:y.msg;
+  $("#sdC").style.display=y.chk?"flex":"none";
+  $("#sdCt").textContent=y.chk;
+  $("#sdK").classList.remove("on");
+  $("#sdX").textContent=y.no;
+  $("#sdO").textContent=y.ok;
+  f=$("#sdO");
+ }else if(id=="err"){
+  const x=ERRS[n]||ERRS[0];
+  $("#erM").textContent=x.msg;
+  $("#erB").textContent=x.btn;
+  f=$("#erB");
+ }else if(id=="kbsw"){
+  const L=[["ja","日本語 (かな)","日本語入力"],["en","English (QWERTY)","英数字"],["sym","記号","記号・約物"],["sys","システムキーボード","OS標準キーボードで入力"]],l=$("#kswl");
+  l.innerHTML="";
+  L.forEach(([k,t,d])=>{
+   const e=el(`<div class="se" data-f><div class="a">${t}</div><div class="b">${KB.layout==k?"現在のキーボード · ":""}${d}</div></div>`);
+   e._a=()=>{if(k!=="sym"&&k!=="sys")KB.base=k;KB.layout=k;KB.shift=false;if(k!=="sys")kbBuild();closeOv();if(k==="sys")openSysKeyboard()};
+   l.append(e);
+  });
+  f=$$(".se",l)[Math.max(0,L.findIndex(x=>x[0]==KB.layout))];
+ }
+ $("#"+id).classList.add("on");scr=id;focus(f);
+}
+function closeOv(){$("#"+scr).classList.remove("on");scr=under;focus(ovFrom)}
+Object.assign(ACT,{
+ yc:()=>closeOv(),
+ yo:()=>{
+  if(sysMode===0){
+   closeOv();
+   toast("外部ブラウザで開きます");
+   try{window.open(APP.pendingUrl,"_blank")}catch(e){}
+  }else{
+   SESSIONS=[];
+   saveSessions();
+   renderBrowse();
+   renderHist();
+   closeOv();
+   toast("履歴を削除しました");
+  }
+ },
+ yk:()=>$("#sdK").classList.toggle("on"),
+ ed:()=>closeOv()
+});
+
+/* フォーカス・ナビゲーション制御 */
+function focus(e){
+ if(!e)return;
+ if(cur)cur.classList.remove("foc");
+ cur=e;e.classList.add("foc");
+ const orb=e.classList.contains("orb");
+ if(scr=="browse"){
+  const b=e.closest(".blk");
+  if(b)$$(".blk").forEach(x=>x.classList.toggle("act",x==b));
+  if(!orb)$("#browse").classList.toggle("mini",!e.closest(".hds"));
+ }
+ if(scr=="chat")$("#chat").classList.toggle("rel",!!e.closest(".drl"));
+ if(scr=="prom"){
+  const k=e.closest(".cvk");
+  if(k)$$(".cvk").forEach(x=>x.classList.toggle("act",x==k));
+ }
+ const h=e.closest(".hds");
+ if(h)h.scrollTo({top:e.offsetTop-h.clientHeight/2+e.offsetHeight/2,behavior:"smooth"});
+ else e.scrollIntoView({block:"center",inline:"center",behavior:"smooth"});
+ e._f&&e._f();
+}
+
+function go(id,from){
+ if(id=="home")id="browse";
+ $$(".scr").forEach(s=>s.classList.toggle("on",s.id==id));
+ scr=id;
+ if(from)origin=from;
+ if(KB.open&&id!="inp"){KB.open=false;$("#kbd").className=""}
+ QC="";
+ if(id=="inp"){
+  const o=KBP||{};
+  if(!KBP)kbRet="browse";
+  KBP=null;
+  kbOpen(Object.assign({onDone:t=>{toast("入力: "+(t||"(空)"));go(kbRet)}},o,{prompt:true}));
+ }
+ if(id=="s1"){Q="";renderS()}
+ if(id=="hist"){histSelMode=false;histSelected.clear();$("#histBar").classList.remove("on");renderHist()}
+ if(id=="prom")renderProm();
+ if(id=="set")renderSettings();
+ let t=$("#"+id+" [data-f]");
+ if(id=="browse")t=origin&&$("#browse").contains(origin)?origin:$(".hd");
+ if(id=="inp")t=$$("#kgrid .kk")[0];
+ if(id=="prom")t=$(".cvr .card");
+ if(id=="hist")t=$("#gg .gc")||$("#hist .orb");
+ if(id=="chat")t=$("#chatBox");
+ if(t)focus(t);
+}
+
+const ROOT=()=>OV[scr]?$("#"+scr):KB.open?$("#kbd"):$("#"+scr);
+
+function move(d){
+ // サイドパネル内の上下移動は座標ではなく並び順で確実に移動
+ if((d=="d"||d=="u")&&cur&&cur.closest(".hds")&&!KB.open&&!OV[scr]){
+  const items=$$("#hds .hd");
+  const idx=items.indexOf(cur);
+  if(idx>=0){
+   const next=d=="d"?items[idx+1]:items[idx-1];
+   if(next)return focus(next);
+  }
+ }
+ const a=cur.getBoundingClientRect(),ax=a.left+a.width/2,ay=a.top+a.height/2;
+ let best,bs=1e9;
+ $$("[data-f]",ROOT()).forEach(e=>{
+  if(e==cur)return;
+  if((d=="r"||d=="l")&&cur.closest(".nav")&&e.closest(".nav"))return;
+  const b=e.getBoundingClientRect();
+  if(!b.width)return;
+  const dx=b.left+b.width/2-ax,dy=b.top+b.height/2-ay;
+  const p=d=="r"?dx:d=="l"?-dx:d=="d"?dy:-dy,q=(d=="r"||d=="l")?Math.abs(dy):Math.abs(dx);
+  if(p<8)return;
+  const s=p+q*2.5;
+  if(s<bs){bs=s;best=e}
+ });
+ if(d=="l"&&(!best||best.closest(".nav"))&&cur.closest(".main")){
+  const sel=$(".hd.sel");
+  if(sel)best=sel;
+ }
+ if(best)focus(best);
+}
+
+function act(){
+ if(!cur)return;
+ const d=cur.dataset;
+ if(d.go){
+  const hd=cur.classList.contains("hd");
+  if(hd)$$(".hd").forEach(h=>h.classList.toggle("sel",h==cur));
+  if(d.go=="home")return toast("トップ画面");
+  if(d.go=="newchat"){
+   APP.curSessionId=null;
+   updateChatView(null);
+   return go("chat",cur);
+  }
+  if(d.go=="movie_quick")return startNewChatWithPrompt("今夜大画面で観るのにおすすめの映画を教えて");
+  if(d.go=="image_quick")return startNewChatWithPrompt("美しい星空と夜の森の風景画像を生成して見せて");
+  prevS="browse";
+  if(OV[d.go])return openOv(d.go,+d.arg||0);
+  return go(d.go,cur);
+ }
+ if(d.act)return ACT[d.act]();
+ if(cur._a)return cur._a();
+}
+
+addEventListener("keydown",e=>{
+ const isBack=e.key=="Escape"||e.key=="Backspace"||e.key=="GoBack"||e.keyCode===461||e.keyCode===10009;
+ if(KB.open&&!OV[scr]){
+  if(isBack){e.preventDefault();if(KB.mode=="prompt")go(kbRet);else kbClose(true);return}
+  if(e.key.length==1&&e.key!=" "&&!e.ctrlKey&&!e.metaKey){e.preventDefault();kbChar(e.key);return}
+ }
+ if(scr=="s1"&&!KB.open){
+  if(e.key.length==1&&e.key!=" "){e.preventDefault();Q+=e.key;renderS();return}
+ }
+ const m={ArrowRight:"r",ArrowLeft:"l",ArrowDown:"d",ArrowUp:"u"}[e.key];
+ if(m){e.preventDefault();move(m)}
+ else if(e.key=="Enter"||e.key==" "){
+  e.preventDefault();
+  if(e.repeat)return;
+  if(scr=="hist"&&cur&&cur.dataset.sid&&!histSelMode){
+   holdFired=false;
+   clearTimeout(holdTimer);
+   holdTimer=setTimeout(()=>{holdFired=true;enterHistSelect(cur.dataset.sid)},550);
+   return;
+  }
+  act();
+ }
+ else if(isBack){
+  e.preventDefault();
+  if(OV[scr])closeOv();
+  else if(scr=="hist"&&histSelMode)exitHistSelect();
+  else if(scr!="browse")go(scr=="s1"?prevS:scr=="list"?"set":"browse");
+ }
+});
+
+addEventListener("keyup",e=>{
+ if(e.key=="Enter"||e.key==" "){
+  if(holdTimer){
+   clearTimeout(holdTimer);
+   holdTimer=null;
+   if(!holdFired)act();
+   holdFired=false;
+  }
+ }
+});
+
+document.addEventListener("mousedown",e=>{
+ const t=e.target.closest("#gg .gc");
+ if(scr=="hist"&&t&&!histSelMode){
+  holdFired=false;
+  clearTimeout(holdTimer);
+  holdTimer=setTimeout(()=>{holdFired=true;focus(t);enterHistSelect(t.dataset.sid)},550);
+ }
+});
+document.addEventListener("mouseup",()=>{
+ if(holdTimer){clearTimeout(holdTimer);holdTimer=null}
+});
+
+document.addEventListener("click",e=>{
+ if(holdFired){holdFired=false;return}
+ const t=e.target.closest("[data-f]");
+ if(t&&ROOT().contains(t)){focus(t);act()}
+});
+
+function fit(){
+ const s=Math.min(innerWidth/1920,innerHeight/1080),st=$("#stage");
+ st.style.width=innerWidth/s+"px";
+ st.style.height=innerHeight/s+"px";
+ st.style.transform=`scale(${s})`;
+ st.style.left="0";st.style.top="0";
+}
+addEventListener("resize",fit);fit();
+renderBrowse();
+updateChatView(null);
+go("browse");
+</script>
+</body>
+</html>
