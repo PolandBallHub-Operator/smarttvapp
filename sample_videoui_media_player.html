@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sample VideoUI</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&family=Roboto:wght@300;400;500&family=Roboto+Condensed:wght@300;400&family=Noto+Sans+JP:wght@300;400;500&display=block">
+<style>
+:root{
+  --bg:#37474f;
+  --bg-browse:#324047;
+  --nav-orange:#eb4100;
+  --nav-orange-mini:#e63e00;
+  --card-top:#191c1e;
+  --card-btm:#222c31;
+  --card-btm-act:#293941;
+  --card-btm-foc:#354b56;
+  --teal:#50e3c2;
+  --org:#ff8f00;
+  --c:"Roboto Condensed","Roboto","Noto Sans JP",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:clip;background:#000;font-family:Roboto,"Noto Sans JP",system-ui,sans-serif;color:#fff;user-select:none}
+.ms{font-family:"Material Symbols Outlined";font-weight:400;font-style:normal;line-height:1;display:inline-block;white-space:nowrap;letter-spacing:normal;font-feature-settings:"liga";-webkit-font-feature-settings:"liga";font-variation-settings:"FILL" 1,"wght" 500}
+#stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;overflow:clip;background:var(--bg)}
+.scr{position:absolute;inset:0;display:none}.scr.on{display:block}
+
+/* 検索オーブ (画像と同じオレンジ丸ボタン) */
+.orb{position:absolute;left:112px;top:62px;width:104px;height:104px;border-radius:50%;background:var(--org);color:#fff;display:grid;place-items:center;font-size:56px;box-shadow:0 4px 10px #0006;transition:.2s}
+.orb.foc{transform:scale(1.18);box-shadow:0 12px 28px #0008;background:#ffa726}
+.ttl{position:absolute;font-family:var(--c);font-weight:300;color:#fff}
+
+/* 共通カード部品 */
+.card{flex:none;position:relative;transition:transform .18s,box-shadow .18s,filter .18s;background:var(--card-btm);box-shadow:0 2px 4px #0005}
+.card .im{position:relative;background:var(--card-top);display:grid;place-items:center;overflow:hidden}
+.card .im .ms{font-size:96px;color:#ffffff55;transition:color .2s}
+.card .tm{position:absolute;right:14px;bottom:8px;font-size:22px;color:#ffffffa6;font-family:var(--c)}
+.card .in{padding:16px 20px 0;color:#fff;font-family:var(--c);background:var(--card-btm);transition:background .2s}
+.card .t{font-size:28px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#ffffffa6;transition:color .2s}
+.card .s{font-size:21px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#ffffff70;margin-top:4px;transition:color .2s}
+.card.foc{transform:scale(1.08);z-index:5;box-shadow:0 18px 36px #000a}
+
+/* トップ画面 (#browse) : 添付画像と同じオレンジサイドバー + ダークスレート背景 */
+#browse{background:var(--bg-browse);transition:background .25s}
+#browse.theme-browsing{background:#315b70}
+#browse.theme-browsing .cp .in{background:#2d5061}
+#browse.theme-browsing .blk.act .cp .in{background:#356177}
+#browse.theme-browsing .blk.act .cp.foc .in{background:#40748e}
+#browse.theme-browsing .gi{background:#233d4a}
+#browse.theme-browsing .blk.act .gi{background:#2d5061}
+#browse.theme-browsing .gi.foc{background:#3d6b82}
+
+#browse .gt{font-family:Roboto,"Noto Sans JP",sans-serif;font-weight:300;font-size:78px;right:114px;top:64px;color:#fff}
+
+/* 折りたたみ式サイドパネル (幅540px / 折りたたみ64px) */
+.nav{position:absolute;left:0;top:0;width:540px;height:100%;background:var(--nav-orange);box-shadow:0 0 16px #0008;z-index:4;transition:width .25s,background .25s,box-shadow .25s}
+#browse.mini .nav{width:64px;background:var(--nav-orange-mini);box-shadow:none}
+.hds{position:absolute;left:0;right:0;top:290px;bottom:0;overflow:hidden;padding:20px 0 600px 112px;transition:opacity .2s}
+#browse.mini .hds{opacity:0}
+.hd{height:84px;line-height:84px;font-family:var(--c);font-size:38px;color:#ffffffa6;padding:0;white-space:nowrap;transition:font-size .15s,color .15s}
+.hd.sel{color:#fff}
+.hd.foc{font-size:46px;color:#fff}
+.hd .ms{width:42px;font-size:36px;vertical-align:middle;margin-right:16px;color:#ffffffa6;text-align:center;line-height:1;transition:opacity .2s,color .15s}
+.hd.sel .ms,.hd.foc .ms{color:#fff}
+.hd .tx{display:inline-block;vertical-align:middle;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:360px;transition:max-width .25s,opacity .2s}
+#browse.mini .hd .tx{max-width:0;opacity:0}#browse.mini .hd .ms{opacity:0}
+
+.main{position:absolute;left:564px;right:0;top:220px;bottom:0;overflow:hidden;padding:40px 0 700px;transition:left .25s}
+#browse.mini .main{left:92px}
+.sec{font-family:var(--c);font-size:38px;height:54px;line-height:54px;color:#ffffffa6;margin:0 0 16px 20px;transition:opacity .2s,color .2s}
+.blk.act .sec{color:#fff}#browse:not(.mini) .sec{opacity:0}
+.row{display:flex;gap:18px;overflow:hidden;padding:30px 0 30px 20px;margin:-30px 0 22px}
+
+/* カテゴリタイル (.gi) : 画像のダーク四角タイル */
+.gi{flex:none;position:relative;width:300px;height:260px;background:#1c2326;color:#ffffffa6;display:flex;flex-direction:column;justify-content:space-between;text-align:left;padding:0;box-shadow:0 3px 6px #0006;transition:transform .18s,background .18s,box-shadow .18s,color .2s}
+.gi .gim{height:176px;background:var(--card-top);display:grid;place-items:center}
+.gi .gim .ms{font-size:92px;color:#ffffff4d;transition:color .2s}
+.gi .gin{height:84px;padding:14px 20px;background:var(--card-btm);transition:background .2s}
+.gi .gt1{font-size:26px;font-family:var(--c);color:#ffffffa6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gi .gt2{font-size:20px;font-family:var(--c);color:#ffffff70;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.blk.act .gi .gim .ms{color:#ffffff80}
+.blk.act .gi .gin{background:var(--card-btm-act)}
+.blk.act .gi .gt1{color:#fff}
+.gi.foc{transform:scale(1.1);z-index:5;box-shadow:0 18px 36px #000a}
+.gi.foc .gim .ms{color:#ffffffcc}
+.gi.foc .gin{background:var(--card-btm-foc)}
+.gi.foc .gt1,.gi.foc .gt2{color:#fff}
+
+/* メディアカード (.cp) */
+.cp{width:300px;background:var(--card-btm);box-shadow:0 3px 6px #0006}
+.cp .im{height:176px;background:var(--card-top)}
+.cp .in{height:84px;background:var(--card-btm);padding:14px 20px 0}
+.blk.act .cp .im .ms{color:#ffffff80}
+.blk.act .cp .in{background:var(--card-btm-act)}
+.blk.act .cp .t{color:#fff}
+.blk.act .cp .s{color:#ffffffa6}
+.cp.foc{transform:scale(1.1)}
+.blk.act .cp.foc .im .ms{color:#ffffffcc}
+.blk.act .cp.foc .in{background:var(--card-btm-foc)}
+.blk.act .cp.foc .t,.blk.act .cp.foc .s{color:#fff}
+
+/* 検索画面 (#s1) */
+#s1{background:var(--bg-browse)}
+.s1o{position:absolute;left:102px;top:52px;width:124px;height:124px;border-radius:50%;background:var(--org);color:#fff;display:grid;place-items:center;font-size:76px;box-shadow:0 4px 10px #0007;transition:.2s}
+.s1o.foc{transform:scale(1.12);box-shadow:0 12px 26px #0009;background:#ffa726}
+.sf{position:absolute;left:356px;top:58px;width:1040px;height:112px;background:#222c31;color:#ffffffa6;font-size:40px;line-height:112px;padding-left:48px;transition:.15s;white-space:nowrap;overflow:hidden}
+.sf.q{color:#fff}.sf.foc{background:#2d3b42;box-shadow:0 0 0 4px #fff}
+.sT{left:112px;top:238px;font-size:42px;font-family:var(--c);font-weight:400;color:#fff}
+.sR{position:absolute;left:112px;top:317px;display:flex;gap:18px;flex-wrap:wrap;width:1700px}
+.rc{width:300px;background:var(--card-btm);box-shadow:0 3px 6px #0008}
+.rc .im{height:176px;background:var(--card-top)}
+.rc .in{height:96px;padding:16px 20px;background:var(--card-btm-act)}
+.rc .t{font-size:30px;color:#fff}.rc .s{font-size:22px;color:#ffffffa6}.rc .tm{display:none}
+.rc.foc{transform:scale(1.1)}.rc.foc .in{background:var(--card-btm-foc)}
+.none{position:absolute;font-size:40px;color:#ffffffa6;top:360px;left:112px}
+
+/* 縦グリッド一覧 (#grid) */
+#grid{background:var(--bg-browse)}
+.gt{right:114px;top:64px;font-size:78px;color:#fff}
+.gb{position:absolute;left:0;right:0;top:240px;bottom:0;overflow:hidden;padding:60px 0 400px 148px}
+.gg{display:grid;grid-template-columns:repeat(5,300px);gap:20px 18px}
+.gc{width:300px}.gc .im{height:176px;background:var(--card-top)}.gc .in{height:96px;background:var(--card-btm-act);padding:16px 20px}.gc .t{font-size:28px;color:#fff}.gc .s{font-size:21px;color:#ffffffa6}
+.gc.foc{transform:scale(1.12)}.gc.foc .in{background:var(--card-btm-foc)}.gc.foc .s{color:#fff}.gc .tm{display:none}
+
+/* プレイリスト管理 (#list) */
+#list{background:var(--bg-browse)}
+.lst{position:absolute;left:50%;margin-left:-696px;top:260px;width:1393px;box-shadow:0 8px 30px #0006;overflow:hidden}
+.lh{height:97px;line-height:97px;background:var(--nav-orange);font-size:31px;padding-left:64px;color:#fff}
+.lb{height:760px;overflow:hidden;background:var(--card-btm)}
+.li{position:relative;height:96px;display:flex;align-items:center;font-size:31px;padding:0 64px;border-bottom:1px solid #191c1e;color:#fff}
+.li>*{position:relative;z-index:1}.li b{font-weight:400;width:105px}.li span{flex:1}
+.li.foc::before{content:"";position:absolute;left:0;top:0;bottom:0;width:100%;background:var(--card-btm-foc)}
+.bx{width:56px;height:56px;background:#191c1e;border:3px solid #fff;border-radius:2px;display:grid;place-items:center;color:#fff;font-size:40px}
+
+/* 設定画面 (#set) : キーボード画面と統一したダークトーン */
+#set{background:#101315}
+.sl{position:absolute;left:0;top:0;width:806px;height:100%;text-align:right}
+.cat{position:absolute;right:0;top:432px;width:806px;font-size:30px;color:#ffffffa6;font-family:var(--c)}.nm{position:absolute;right:0;top:488px;width:806px;font-size:76px;font-weight:300;font-family:var(--c);white-space:nowrap;color:#fff}
+.sic{position:absolute;left:840px;top:402px;width:279px;height:279px;background:#565c61;display:grid;place-items:center;font-size:150px;color:#ffffffcc}
+.sr{position:absolute;left:1157px;right:0;top:0;bottom:0;background:#1d2124;overflow:hidden}
+.sh{position:absolute;left:0;right:0;top:479px;height:123px;background:#2a3035;z-index:2}.sh span{position:absolute;left:59px;top:34px;font-size:28px;font-family:var(--c);color:#fff}.sh i{position:absolute;left:59px;top:80px;width:568px;height:3px;background:#fff}
+.sw{position:absolute;left:0;right:0;top:479px;bottom:0;overflow:hidden;padding:123px 0 500px}
+.se{height:130px;padding:26px 0 0 59px;transition:.15s}.se .a{font-size:38px;font-family:var(--c);color:#fff}.se .b{font-size:24px;color:#ffffffa6}.se.foc{background:#ffffff2a}
+
+/* 入力画面 (#inp) */
+#inp{background:#101315}
+.ip{position:absolute;left:0;right:0;top:0;height:600px;background:var(--bg-browse)}
+.pr{position:absolute;left:50%;margin-left:-512px;top:380px;font-size:64px;font-weight:300;font-family:var(--c);color:#fff}
+.fd{position:absolute;left:50%;margin-left:40px;top:380px;width:740px;height:84px;border-bottom:3px solid #fff;font-size:52px;font-weight:300;color:#fff;white-space:nowrap;overflow:hidden}.fd:after{content:"";display:inline-block;width:3px;height:56px;background:#fff;vertical-align:middle;animation:bl 1s steps(1) infinite}@keyframes bl{50%{opacity:0}}
+
+/* 再生画面 (#play) : 音量バーは完全に排除・UI非表示対応 */
+#play{background:#101315}
+#vwrap{position:absolute;inset:0;background:#000;display:grid;place-items:center}
+#mediaEl{width:100%;height:100%;object-fit:contain;background:#000}
+#audioArt{position:absolute;left:50%;top:180px;transform:translateX(-50%);width:220px;height:220px;background:var(--card-btm);display:none;place-items:center;font-size:120px;color:#ffffffcc;box-shadow:0 8px 30px #0008}
+#playHud{position:absolute;inset:0;background:linear-gradient(transparent 20%,#000d);transition:opacity .25s}
+#play.hud-hide #playHud{opacity:0;pointer-events:none}
+.pt{left:50%;margin-left:-696px;top:440px;font-size:76px;color:#fff}.ps{position:absolute;left:50%;margin-left:-696px;top:564px;font-size:32px;color:#ffffffa6}
+.bar{position:absolute;left:50%;margin-left:-696px;top:671px;width:1395px;height:138px;background:var(--card-btm-act);overflow:hidden}
+.bar .tk{position:absolute;left:0;right:0;top:0;height:8px;background:#ffffff40}.bar .pg{height:8px;background:var(--nav-orange);width:0}
+.bar .tt{position:absolute;top:30px;font-size:24px;color:#fff;font-family:var(--c)}
+.ct{position:absolute;left:0;right:0;top:0;bottom:0;display:flex;justify-content:center;align-items:center;gap:24px}
+.cb{width:160px;height:160px;border-radius:50%;display:grid;place-items:center;font-size:76px;color:#fff;transition:.15s}.cb.foc{background:#ffffff33}
+.ex{position:absolute;left:50%;margin-left:-696px;width:1395px;top:842px;display:flex;justify-content:center;gap:87px}
+.ex .cb{width:72px;height:72px;background:var(--card-btm);font-size:40px;color:#fff}.ex .cb.foc{background:#fff;color:#222;transform:scale(1.2)}
+.sg{position:absolute;left:50%;margin-left:-696px;top:944px;font-size:34px;font-family:var(--c);color:#fff}
+.sr2{position:absolute;left:50%;margin-left:-696px;top:1024px;display:flex;gap:16px}.sc{width:340px;height:140px;background:var(--card-btm);padding:20px;display:flex;flex-direction:column;justify-content:center;transition:.15s}.sc .t{font-size:28px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sc .s{font-size:22px;color:#ffffffa6;margin-top:8px}.sc.foc{background:var(--card-btm-foc);transform:translateY(-14px)}
+
+/* 詳細画面 (#det) */
+#det{background:var(--bg-browse)}
+.dbg{position:absolute;inset:0;background:linear-gradient(#0008,#000c);transition:filter .3s}
+#det.rel .dbg{filter:brightness(.6)}
+.dtc{position:absolute;left:0;top:0;width:100%;height:1700px;transition:transform .35s}
+#det.rel .dtc{transform:translateY(-820px)}
+.dab{position:absolute;left:700px;right:0;top:390px;height:170px;background:var(--card-top)}
+.dbs{position:absolute;left:740px;top:415px;display:flex;gap:16px}
+.db{width:330px;height:120px;background:var(--card-btm);padding:0 30px;display:flex;flex-direction:column;justify-content:center;transition:.15s;color:#fff}
+.db .t{font-size:26px;letter-spacing:2px;color:#ffffffa6;font-family:var(--c)}.db b{font-size:36px;font-weight:500;margin-top:6px}
+.db.foc{background:#fff;color:#222;transform:scale(1.05);box-shadow:0 10px 24px #0008}.db.foc .t{color:#555}
+.dpn{position:absolute;left:0;right:0;top:560px;height:410px;background:var(--nav-orange)}
+.dtT{position:absolute;left:700px;top:40px;font-size:72px;font-family:var(--c);font-weight:400;color:#fff}
+.dtS{position:absolute;left:700px;top:140px;font-size:34px;color:#ffffffcc;font-family:var(--c)}
+.dtD{position:absolute;left:700px;top:210px;width:1000px;font-size:28px;line-height:1.55;color:#fff;font-family:Roboto,"Noto Sans JP",sans-serif}
+.dpo{position:absolute;left:130px;top:180px;width:470px;height:640px;display:grid;place-items:center;font-size:180px;color:#ffffff80;background:var(--card-top);box-shadow:0 20px 50px #000a}
+.dst{position:absolute;left:112px;top:1010px;font-size:44px;font-family:var(--c);color:#fff}
+.drl{position:absolute;left:0;width:1920px;top:1080px;overflow:hidden;display:flex;gap:18px;padding:60px 0 60px 112px}
+
+/* 権限ダイアログ (#perm) : 添付画像 image_46d4e3 と同じダークグレーのボトムシート */
+.ovl{position:absolute;inset:0;display:none;z-index:50;background:#000a}.ovl.on{display:block}
+.pmp{position:absolute;left:0;right:0;bottom:0;height:440px;background:#263238;display:flex;align-items:center;gap:60px;padding:0 120px;box-shadow:0 -10px 40px #0008}
+.pmi{width:180px;text-align:center;color:#fff}.pmi .ms{font-size:170px}
+.pmx{flex:1;min-width:0}.pmm{font-size:48px;line-height:1.3;font-weight:400;color:#fff}.pmm b{font-weight:700}
+.pmh{font-size:28px;line-height:1.5;color:#ffffffa6;margin-top:26px}
+.pmb{width:610px}.pb{height:100px;line-height:100px;padding-left:36px;font-size:38px;color:#fff;transition:.12s}.pb.foc{background:#4f5b62}
+
+/* システムダイアログ (#sys) */
+.sdd{position:absolute;left:50%;top:50%;width:1120px;transform:translate(-50%,-50%);background:#263238;border-radius:8px;padding:56px 64px 36px;box-shadow:0 20px 60px #000b;color:#fff}
+.sdt{font-size:50px;font-weight:500;margin-bottom:24px}.sdm{font-size:36px;line-height:1.45;white-space:pre-line;color:#ffffffdd}
+.sdc{display:flex;align-items:center;gap:22px;margin:40px 0 0 -16px;padding:12px 16px;font-size:32px;border-radius:8px;transition:.12s}.sdc.foc{background:#ffffff2e}
+.sdk{width:42px;height:42px;border:4px solid #fff;border-radius:5px;display:grid;place-items:center;font-size:30px;flex:none}.sdk .ms{opacity:0;font-size:32px}.sdk.on{background:#fff;color:#263238}.sdk.on .ms{opacity:1}
+.sdr{display:flex;justify-content:flex-end;gap:24px;margin-top:40px}
+.sdb{font-size:34px;font-weight:500;letter-spacing:2px;padding:18px 32px;border-radius:6px;transition:.12s;color:#fff}.sdb.foc{background:#4f5b62}
+
+/* ソフトウェアキーボード */
+#kbd{position:absolute;left:0;right:0;bottom:0;display:none;z-index:40;padding-bottom:28px}#kbd.on{display:block}
+#kbd.inl{background:#1c262cf5;box-shadow:0 -10px 40px #0009}
+.kwrap{width:1354px;margin:0 auto}.kcand{width:1124px;height:76px;display:flex;align-items:center;gap:10px;font-size:34px;font-family:var(--c);color:#fff}
+.kc{height:60px;line-height:60px;padding:0 24px;border-radius:6px;white-space:nowrap;transition:.1s}.kc.foc{background:#ffffff40}
+.kmain{display:flex;gap:30px}.kgrid{display:flex;flex-direction:column;gap:4px}.krw{display:flex;gap:4px}
+.kk{height:72px;flex:none;display:grid;place-items:center;font-size:38px;font-weight:300;border-radius:6px;transition:.1s;color:#fff}
+.kk .ms{font-size:36px}.kk.s{font-size:26px;font-family:var(--c)}.kk.on{color:#fff;font-weight:500}.kk.foc{background:#ffffff40;transform:scale(1.12);z-index:2}
+.kside{width:200px;display:flex;flex-direction:column;gap:16px;justify-content:center}.kside .kk{width:200px}
+.kk.act{height:104px;color:var(--teal);font-size:40px;letter-spacing:2px}.kk.act.foc{background:var(--teal);color:#fff}
+.cmp{text-decoration:underline;text-underline-offset:6px;background:#50e3c233}
+
+/* エラー & キーボード切替 */
+#err{background:#000d}.erc{position:absolute;left:0;right:0;top:300px;text-align:center}.eri .ms{font-size:230px;color:#ffffffcc}
+.erm{font-size:44px;margin:10px auto 0;max-width:1100px;line-height:1.4;color:#fff}.erb{display:inline-block;margin-top:70px;padding:20px 60px;background:#4a4a4a;font-size:34px;letter-spacing:3px;transition:.12s;color:#fff}.erb.foc{background:#fff;color:#222;transform:scale(1.08)}
+#kbsw{background:#101315}#kbsw .sr{background:#1d2124}#kbsw .sic{background:#565c61}.ksl{position:absolute;left:0;right:0;top:420px}
+#toast{position:absolute;left:50%;bottom:50px;transform:translate(-50%,40px);background:#000d;padding:18px 40px;border-radius:40px;font-size:30px;opacity:0;transition:.3s;z-index:99;color:#fff}#toast.on{opacity:1;transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+<div id="stage">
+
+<!-- メイン画面 (折りたたみ式サイドパネル) -->
+<section class="scr" id="browse">
+  <div class="nav">
+    <div class="orb" data-f data-act="search"><span class="ms">search</span></div>
+    <div class="hds" id="hds"></div>
+  </div>
+  <!-- 右上は文字ロゴのみ -->
+  <div class="ttl gt" id="topTitle">Sample VideoUI</div>
+  <div class="main" id="rows"></div>
+</section>
+
+<!-- 検索画面 -->
+<section class="scr" id="s1">
+  <div class="s1o" data-f data-act="mic"><span class="ms">mic</span></div>
+  <div class="sf" id="sf1" data-f data-act="field"></div>
+  <div class="ttl gt">Sample VideoUI</div>
+  <div class="ttl sT">検索結果</div>
+  <div class="sR" id="sR1"></div>
+</section>
+
+<!-- 縦グリッド一覧 -->
+<section class="scr" id="grid">
+  <div class="orb" data-f data-act="search"><span class="ms">search</span></div>
+  <div class="ttl gt" id="gridTitle">ビデオ一覧</div>
+  <div class="gb"><div class="gg" id="gg"></div></div>
+</section>
+
+<!-- メディア詳細画面 -->
+<section class="scr" id="det">
+  <div class="dbg"></div>
+  <div class="ttl gt">Sample VideoUI</div>
+  <div class="dtc" id="dtc">
+    <div class="dab"></div>
+    <div class="dpn">
+      <div class="dtT" id="dtT">メディアタイトル</div>
+      <div class="dtS" id="dtS">形式 · 再生時間</div>
+      <div class="dtD" id="dtD">メディアの詳細情報です。</div>
+    </div>
+    <div class="dpo" id="dpo"><span class="ms">movie</span></div>
+    <div class="dbs">
+      <div class="db" data-f data-act="detPlay"><span class="t">メディアを</span><b>再生する</b></div>
+      <div class="db" data-f data-act="detPl"><span class="t">リストへ</span><b>プレイリスト追加</b></div>
+      <div class="db" data-f data-act="detPeer"><span class="t">P2P転送</span><b>PeerJSで送信</b></div>
+    </div>
+    <div class="dst">ライブラリ内の他のメディア</div>
+    <div class="drl" id="drl"></div>
+  </div>
+</section>
+
+<!-- プレイリスト管理画面 -->
+<section class="scr" id="list">
+  <div class="ttl gt">プレイリスト</div>
+  <div class="lst">
+    <div class="lh">選択してチェック切り替え</div>
+    <div class="lb" id="ll"></div>
+  </div>
+</section>
+
+<!-- 設定画面 -->
+<section class="scr" id="set">
+  <div class="ttl gt">設定</div>
+  <div class="sl">
+    <div class="cat">環境設定</div>
+    <div class="nm" id="snm">再生設定</div>
+  </div>
+  <div class="sic" id="sic"><span class="ms">settings</span></div>
+  <div class="sr">
+    <div class="sh"><span id="shTitle">設定項目</span><i></i></div>
+    <div class="sw" id="sw"></div>
+  </div>
+</section>
+
+<!-- プロンプト入力画面 -->
+<section class="scr" id="inp">
+  <div class="ttl gt">Sample VideoUI</div>
+  <div class="ip">
+    <div class="pr" id="inpPrompt">URLを入力</div>
+    <div class="fd" id="fd"></div>
+  </div>
+</section>
+
+<!-- 再生画面 (音量バー無し・UI非表示対応) -->
+<section class="scr" id="play">
+  <div id="vwrap">
+    <video id="mediaEl" playsinline></video>
+    <div id="audioArt"><span class="ms">album</span></div>
+  </div>
+  <div id="playHud">
+    <div class="ttl gt">Sample VideoUI</div>
+    <div class="ttl pt" id="playTitle">タイトル</div>
+    <div class="ps" id="playSub">補足情報</div>
+    <div class="bar">
+      <div class="tk"><div class="pg" id="pg"></div></div>
+      <span class="tt" style="left:28px" id="t0">00:00</span>
+      <span class="tt" style="right:28px" id="t1">00:00</span>
+      <div class="ct">
+        <div class="cb" data-f data-act="rw"><span class="ms">fast_rewind</span></div>
+        <div class="cb" data-f data-act="pp"><span class="ms" id="ppi">pause</span></div>
+        <div class="cb" data-f data-act="ff"><span class="ms">fast_forward</span></div>
+      </div>
+    </div>
+    <div class="ex">
+      <div class="cb" data-f data-act="stop"><span class="ms">stop</span></div>
+      <div class="cb" data-f data-act="rep"><span class="ms" id="repi">repeat</span></div>
+      <div class="cb" data-f data-act="hudToggle"><span class="ms">visibility_off</span></div>
+      <div class="cb" data-f data-act="fsToggle"><span class="ms" id="fsi">fullscreen</span></div>
+    </div>
+    <div class="sg">再生キュー</div>
+    <div class="sr2" id="sr2"></div>
+  </div>
+</section>
+
+<!-- 権限ダイアログ -->
+<div class="ovl" id="perm">
+  <div class="pmp">
+    <div class="pmi" id="pmI"></div>
+    <div class="pmx">
+      <div class="pmm" id="pmT"></div>
+      <div class="pmh" id="pmH"></div>
+    </div>
+    <div class="pmb">
+      <div class="pb" data-f data-act="pa" id="pmA">許可</div>
+      <div class="pb" data-f data-act="pd" id="pmD">許可しない</div>
+    </div>
+  </div>
+</div>
+
+<!-- システムダイアログ -->
+<div class="ovl" id="sys">
+  <div class="sdd">
+    <div class="sdt" id="sdT"></div>
+    <div class="sdm" id="sdM"></div>
+    <div class="sdc" data-f data-act="yk" id="sdC"><i class="sdk" id="sdK"><span class="ms">check</span></i><span id="sdCt"></span></div>
+    <div class="sdr">
+      <div class="sdb" data-f data-act="yc" id="sdX">キャンセル</div>
+      <div class="sdb" data-f data-act="yo" id="sdO">OK</div>
+    </div>
+  </div>
+</div>
+
+<!-- ソフトウェアキーボード -->
+<div id="kbd">
+  <div class="kwrap">
+    <div class="kcand" id="kcand"></div>
+    <div class="kmain">
+      <div class="kgrid" id="kgrid"></div>
+      <div class="kside">
+        <div class="kk s" data-f id="kglb"><span><span class="ms">language</span> 切替</span></div>
+        <div class="kk act" data-f id="kact">確定</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- エラーダイアログ -->
+<div class="ovl" id="err">
+  <div class="ttl gt">Sample VideoUI</div>
+  <div class="erc">
+    <div class="eri"><span class="ms">cloud_off</span></div>
+    <div class="erm" id="erM"></div>
+    <div class="erb" data-f data-act="ed" id="erB">閉じる</div>
+  </div>
+</div>
+
+<!-- キーボード言語切替ダイアログ -->
+<div class="ovl" id="kbsw">
+  <div class="sl">
+    <div class="cat">設定</div>
+    <div class="nm">キーボード</div>
+  </div>
+  <div class="sic"><span class="ms">keyboard</span></div>
+  <div class="sr"><div class="ksl" id="kswl"></div></div>
+</div>
+
+<div id="toast"></div>
+<input type="file" id="filePicker" accept="audio/*,video/*,.mp3,.mp4,.wav,.ogg,.webm,.m4a,.flac" multiple style="display:none">
+</div>
+
+<script>
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const I=(n)=>`<span class="ms">${n}</span>`;
+function el(h){const d=document.createElement("div");d.innerHTML=h.trim();return d.firstChild}
+let tt;
+function toast(t){const e=$("#toast");e.textContent=t;e.classList.add("on");clearTimeout(tt);tt=setTimeout(()=>e.classList.remove("on"),1800)}
+
+const APP = {
+  permGranted: false,
+  mediaList: [
+    {id:"m1", title:"サンプル映像 (MP4)", sub:"1920x1080 · 00:15", type:"video", url:"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4", dur:"00:15", inPl:true},
+    {id:"m2", title:"サンプル楽曲 (MP3)", sub:"MP3 Audio · 06:12", type:"audio", url:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", dur:"06:12", inPl:true},
+    {id:"m3", title:"環境音テスト (OGG)", sub:"OGG Vorbis · 00:08", type:"audio", url:"https://upload.wikimedia.org/wikipedia/commons/c/c8/Example.ogg", dur:"00:08", inPl:false}
+  ],
+  currentMedia: null,
+  repeatMode: 0,
+  autoNext: true,
+  hwAccel: true,
+  resumePlay: true,
+  peerId: "",
+  peerStatus: "未接続",
+  peerObj: null,
+  peerConn: null,
+  pendingActionAfterPerm: null,
+  sysOkCallback: null
+};
+
+const NAV = [
+  ["sec_video", "ビデオ", "movie"],
+  ["sec_audio", "オーディオ", "music_note"],
+  ["sec_pl", "プレイリスト", "queue_music"],
+  ["sec_browse", "ブラウジング", "folder_open"],
+  ["sec_other", "その他", "settings"]
+];
+
+let cur = null, scr = "browse", origin = null;
+
+NAV.forEach(([k, t, ic], i) => {
+  $("#hds").append(el(`<div class="hd${i ? "" : " sel"}" data-f data-nav="${k}">${I(ic)}<span class="tx">${t}</span></div>`));
+});
+
+function buildBrowseRows() {
+  const rows = $("#rows");
+  rows.innerHTML = "";
+  const videos = APP.mediaList.filter(m => m.type === "video");
+  const audios = APP.mediaList.filter(m => m.type === "audio");
+
+  // 行0: ビデオ
+  const bVid = el(`<div class="blk act" id="sec_video"><div class="sec">ビデオ</div><div class="row"></div></div>`);
+  const rVid = $(".row", bVid);
+  rVid.append(makeTile("movie", "すべてのビデオ", `${videos.length} videos`, () => openGrid("video")));
+  rVid.append(makeTile("upload_file", "ファイル追加", "mp3 / mp4 / wav / ogg", () => triggerUpload()));
+  videos.forEach(m => rVid.append(makeMediaCard(m, "cp")));
+  rows.append(bVid);
+
+  // 行1: オーディオ
+  const bAud = el(`<div class="blk" id="sec_audio"><div class="sec">オーディオ</div><div class="row"></div></div>`);
+  const rAud = $(".row", bAud);
+  rAud.append(makeTile("person", "アーティスト", `${audios.length} 曲`, () => openGrid("audio")));
+  rAud.append(makeTile("album", "アルバム", "すべてのアルバム", () => openGrid("audio")));
+  rAud.append(makeTile("theater_comedy", "ジャンル", "すべてのジャンル", () => openGrid("audio")));
+  rAud.append(makeTile("music_note", "トラック", `${audios.length} tracks`, () => openGrid("audio")));
+  audios.forEach(m => rAud.append(makeMediaCard(m, "cp")));
+  rows.append(bAud);
+
+  // 行2: プレイリスト
+  const bPl = el(`<div class="blk" id="sec_pl"><div class="sec">プレイリスト</div><div class="row"></div></div>`);
+  const rPl = $(".row", bPl);
+  const plItems = APP.mediaList.filter(m => m.inPl);
+  rPl.append(makeTile("queue_music", "プレイリスト一覧", `${plItems.length} 件登録済み`, () => go("list")));
+  plItems.forEach(m => rPl.append(makeMediaCard(m, "cp")));
+  rows.append(bPl);
+
+  // 行3: ブラウジング
+  const bBrw = el(`<div class="blk" id="sec_browse"><div class="sec">ブラウジング</div><div class="row"></div></div>`);
+  const rBrw = $(".row", bBrw);
+  rBrw.append(makeTile("folder", "内部ストレージ", "ファイルピッカーを開く", () => triggerUpload()));
+  rBrw.append(makeTile("lan", "PeerJS 送受信", APP.peerId ? `ID: ${APP.peerId}` : "P2Pファイル共有", () => openPeerMenu()));
+  rBrw.append(makeTile("cell_tower", "ストリーム", "Web上のmp3/mp4 URL", () => openUrlPrompt()));
+  rBrw.append(makeTile("search", "メディア検索", "キーワードで検索", () => { prevS = "browse"; go("s1"); }));
+  rows.append(bBrw);
+
+  // 行4: その他
+  const bOth = el(`<div class="blk" id="sec_other"><div class="sec">その他</div><div class="row"></div></div>`);
+  const rOth = $(".row", bOth);
+  rOth.append(makeTile("settings", "設定", "再生・P2P・環境設定", () => go("set")));
+  rOth.append(makeTile("refresh", "更新", "ライブラリを再読込", () => { buildBrowseRows(); toast("ライブラリを更新しました"); }));
+  rOth.append(makeTile("info", "情報", "Sample VideoUI 1.0", () => {
+    openSysDialog("Sample VideoUI について", "Sample VideoUI\nオープンソースのメディアプレイヤーにインスパイアされて作成しました。\n対応形式: MP3 / MP4 / WAV / OGG / WebM", "", "閉じる", "OK", null);
+  }));
+  rows.append(bOth);
+}
+
+function makeTile(icon, title, sub, onAct) {
+  const e = el(`<div class="gi" data-f>
+    <div class="gim">${I(icon)}</div>
+    <div class="gin">
+      <div class="gt1">${esc(title)}</div>
+      <div class="gt2">${esc(sub)}</div>
+    </div>
+  </div>`);
+  e._a = onAct;
+  return e;
+}
+
+function makeMediaCard(m, cls) {
+  const ic = m.type === "video" ? "movie" : "music_note";
+  const c = el(`<div class="card ${cls}" data-f>
+    <div class="im">${I(ic)}<span class="tm">${esc(m.dur || "--:--")}</span></div>
+    <div class="in"><div class="t">${esc(m.title)}</div><div class="s">${esc(m.sub)}</div></div>
+  </div>`);
+  c._a = () => openDetails(m, c);
+  return c;
+}
+
+/* ファイルアップロード & 権限ダイアログ */
+function triggerUpload() {
+  if (!APP.permGranted) {
+    APP.pendingActionAfterPerm = () => $("#filePicker").click();
+    openOv("perm", 0);
+    return;
+  }
+  $("#filePicker").click();
+}
+
+$("#filePicker").addEventListener("change", (ev) => {
+  const files = [...ev.target.files];
+  if (!files.length) return;
+  let addedFirst = null;
+  files.forEach((f, idx) => {
+    const blobUrl = URL.createObjectURL(f);
+    const isVideo = f.type.startsWith("video/") || /\.(mp4|webm|mkv|mov)$/i.test(f.name);
+    const item = {
+      id: "up_" + Date.now() + "_" + idx,
+      title: f.name,
+      sub: `${isVideo ? "ローカル動画" : "ローカル音声"} · ${(f.size / 1024 / 1024).toFixed(1)} MB`,
+      type: isVideo ? "video" : "audio",
+      url: blobUrl,
+      fileObj: f,
+      dur: "LOCAL",
+      inPl: true
+    };
+    APP.mediaList.unshift(item);
+    if (!addedFirst) addedFirst = item;
+  });
+  ev.target.value = "";
+  buildBrowseRows();
+  toast(`${files.length} 件のファイルを追加しました`);
+  if (addedFirst) startPlayback(addedFirst);
+});
+
+/* URL入力 */
+function openUrlPrompt() {
+  kbOpen({
+    prompt: true,
+    layout: "en",
+    promptText: "ストリーム URL (mp3 / mp4)",
+    action: "再生",
+    text: "https://",
+    onDone: (val) => {
+      const u = val.trim();
+      if (!u || u === "https://") {
+        toast("URLが入力されていません");
+        go("browse");
+        return;
+      }
+      if (!/^https?:\/\//i.test(u)) {
+        openOv("err", 2);
+        return;
+      }
+      const isAudio = /\.(mp3|wav|ogg|m4a|flac)(\?.*)?$/i.test(u);
+      const name = u.split("/").pop().split("?")[0] || "Webストリーム";
+      const item = {
+        id: "url_" + Date.now(),
+        title: name,
+        sub: "Web URL ストリーム",
+        type: isAudio ? "audio" : "video",
+        url: u,
+        dur: "STREAM",
+        inPl: true
+      };
+      APP.mediaList.unshift(item);
+      buildBrowseRows();
+      startPlayback(item);
+    }
+  });
+}
+
+/* PeerJS P2P送受信 */
+function loadPeerJSLibrary() {
+  return new Promise((resolve, reject) => {
+    if (window.Peer) return resolve(window.Peer);
+    const s = document.createElement("script");
+    s.src = "https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js";
+    s.onload = () => resolve(window.Peer);
+    s.onerror = () => reject(new Error("PeerJS ライブラリの読み込みに失敗しました"));
+    document.head.appendChild(s);
+  });
+}
+
+async function initPeerNode(customId) {
+  try {
+    toast("PeerJS サーバーへ接続中...");
+    const PeerClass = await loadPeerJSLibrary();
+    if (APP.peerObj) {
+      try { APP.peerObj.destroy(); } catch (_) {}
+    }
+    const genId = customId || ("svui-" + Math.random().toString(36).substring(2, 7));
+    const peer = new PeerClass(genId);
+    APP.peerObj = peer;
+
+    peer.on("open", (id) => {
+      APP.peerId = id;
+      APP.peerStatus = "待機中 (受信可能)";
+      buildBrowseRows();
+      buildSettings();
+      toast(`PeerJS 準備完了: ${id}`);
+    });
+
+    peer.on("connection", (conn) => {
+      APP.peerConn = conn;
+      APP.peerStatus = `接続済み (${conn.peer})`;
+      toast(`相手端末が接続しました: ${conn.peer}`);
+      setupPeerConnHandlers(conn);
+    });
+
+    peer.on("error", (err) => {
+      APP.peerStatus = "エラー";
+      openOvCustomErr("PeerJS 通信エラー: " + (err.message || err.type));
+    });
+  } catch (e) {
+    openOvCustomErr(e.message || "PeerJS の初期化に失敗しました");
+  }
+}
+
+function setupPeerConnHandlers(conn) {
+  conn.on("data", (data) => {
+    if (data && data.kind === "media-file" && data.buffer) {
+      const blob = new Blob([data.buffer], { type: data.mime || "application/octet-stream" });
+      const url = URL.createObjectURL(blob);
+      const isVideo = (data.mime || "").startsWith("video/") || /\.(mp4|webm|mkv)$/i.test(data.name || "");
+      const item = {
+        id: "p2p_" + Date.now(),
+        title: data.name || "P2P受信メディア",
+        sub: `PeerJS受信 · ${conn.peer}`,
+        type: isVideo ? "video" : "audio",
+        url: url,
+        dur: "P2P",
+        inPl: true
+      };
+      APP.mediaList.unshift(item);
+      buildBrowseRows();
+      toast(`P2Pファイルを受信しました: ${item.title}`);
+      startPlayback(item);
+    }
+  });
+}
+
+function openPeerMenu() {
+  if (!APP.peerId) {
+    openSysDialog(
+      "PeerJS P2P送受信",
+      "この端末のPeer IDを発行し、他の Sample VideoUI 端末と音声・動画ファイルを直接送受信できるようにしますか？",
+      "",
+      "キャンセル",
+      "接続を開始",
+      () => initPeerNode()
+    );
+    return;
+  }
+  openSysDialog(
+    "PeerJS ステータス",
+    `あなたのPeer ID: ${APP.peerId}\n状態: ${APP.peerStatus}\n\n「送信先IDを入力」を押すと、相手端末に接続してメディアを送信できます。`,
+    "",
+    "閉じる",
+    "送信先IDを入力",
+    () => promptTargetPeerAndSend(APP.currentMedia || APP.mediaList[0])
+  );
+}
+
+function promptTargetPeerAndSend(mediaItem) {
+  if (!APP.peerObj) {
+    initPeerNode().then(() => promptTargetPeerAndSend(mediaItem));
+    return;
+  }
+  kbOpen({
+    prompt: true,
+    layout: "en",
+    promptText: "送信先の Peer ID を入力",
+    action: "接続して送信",
+    text: "svui-",
+    onDone: async (targetId) => {
+      const tid = targetId.trim();
+      if (!tid) { go("browse"); return; }
+      go("browse");
+      toast(`${tid} へ接続中...`);
+      const conn = APP.peerObj.connect(tid, { reliable: true });
+      APP.peerConn = conn;
+      conn.on("open", async () => {
+        APP.peerStatus = `接続済み (${tid})`;
+        setupPeerConnHandlers(conn);
+        await sendMediaOverPeer(conn, mediaItem);
+      });
+      conn.on("error", () => openOvCustomErr("相手端末への接続に失敗しました"));
+    }
+  });
+}
+
+async function sendMediaOverPeer(conn, mediaItem) {
+  if (!mediaItem) {
+    toast("送信するメディアがありません");
+    return;
+  }
+  try {
+    toast(`送信準備中: ${mediaItem.title}`);
+    let buf, mime = mediaItem.type === "video" ? "video/mp4" : "audio/mpeg";
+    if (mediaItem.fileObj) {
+      buf = await mediaItem.fileObj.arrayBuffer();
+      mime = mediaItem.fileObj.type || mime;
+    } else {
+      const res = await fetch(mediaItem.url);
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const blob = await res.blob();
+      buf = await blob.arrayBuffer();
+      mime = blob.type || mime;
+    }
+    conn.send({
+      kind: "media-file",
+      name: mediaItem.title,
+      mime: mime,
+      buffer: buf
+    });
+    toast(`送信完了: ${mediaItem.title}`);
+  } catch (e) {
+    openOvCustomErr("ファイル送信に失敗しました（外部URLのCORS制限、またはファイルサイズ超過）");
+  }
+}
+
+/* 詳細・グリッド・プレイリスト */
+function openDetails(m, fromEl) {
+  APP.currentMedia = m;
+  $("#dtT").textContent = m.title;
+  $("#dtS").textContent = `${m.sub} · 時間: ${m.dur || "--:--"}`;
+  $("#dtD").textContent = `ソース: ${m.url.startsWith("blob:") ? "ローカルアップロードファイル" : m.url}\nリモコンの決定ボタンで再生を開始します。`;
+  $("#dpo").innerHTML = I(m.type === "video" ? "movie" : "album");
+  $("#det").classList.remove("rel");
+
+  const drl = $("#drl");
+  drl.innerHTML = "";
+  APP.mediaList.forEach(item => drl.append(makeMediaCard(item, "gc")));
+  go("det", fromEl);
+}
+
+function openGrid(filterType) {
+  const list = filterType ? APP.mediaList.filter(m => m.type === filterType) : APP.mediaList;
+  $("#gridTitle").textContent = filterType === "video" ? "すべてのビデオ" : filterType === "audio" ? "すべてのオーディオ" : "メディア一覧";
+  const gg = $("#gg");
+  gg.innerHTML = "";
+  list.forEach(m => gg.append(makeMediaCard(m, "gc")));
+  go("grid", cur);
+}
+
+function buildPlaylistScreen() {
+  const ll = $("#ll");
+  ll.innerHTML = "";
+  APP.mediaList.forEach((m, i) => {
+    const row = el(`<div class="li" data-f><b>${String(i + 1).padStart(2, "0")}</b><span>${esc(m.title)} (${m.type === "video" ? "動画" : "音声"})</span><div class="bx">${m.inPl ? I("check") : ""}</div></div>`);
+    row._a = () => {
+      m.inPl = !m.inPl;
+      $(".bx", row).innerHTML = m.inPl ? I("check") : "";
+      buildBrowseRows();
+      toast(m.inPl ? "プレイリストに追加しました" : "プレイリストから外しました");
+    };
+    ll.append(row);
+  });
+}
+
+/* 再生画面 (音量バーなし・サーバーエラー時クラッシュ防止・上キー/全画面UI非表示対応) */
+const mediaEl = $("#mediaEl");
+let hudTimer = null;
+let loadSessionId = 0;
+
+function fmtTime(sec) {
+  if (!isFinite(sec) || sec < 0) return "00:00";
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+}
+
+function showPlayHud() {
+  $("#play").classList.remove("hud-hide");
+  clearTimeout(hudTimer);
+  if (!mediaEl.paused && APP.currentMedia && APP.currentMedia.type === "video") {
+    hudTimer = setTimeout(() => {
+      if (scr === "play" && !mediaEl.paused) $("#play").classList.add("hud-hide");
+    }, 4500);
+  }
+}
+
+function hidePlayHud() {
+  clearTimeout(hudTimer);
+  $("#play").classList.add("hud-hide");
+}
+
+function handlePlaybackFailure(reasonMsg) {
+  try {
+    mediaEl.pause();
+    mediaEl.removeAttribute("src");
+    mediaEl.load();
+  } catch (_) {}
+  $("#ppi").textContent = "play_arrow";
+  showPlayHud();
+  if (scr === "play" && !OV[scr]) {
+    openOvCustomErr(reasonMsg || "メディアの読み込みに失敗しました。サーバーエラー、またはURL・形式を確認してください。");
+  }
+}
+
+function safePlayMedia(sessionId) {
+  try {
+    const p = mediaEl.play();
+    if (p && typeof p.then === "function") {
+      p.then(() => {
+        if (sessionId !== loadSessionId) return;
+        $("#ppi").textContent = "pause";
+        showPlayHud();
+      }).catch((err) => {
+        if (sessionId !== loadSessionId) return;
+        if (err && err.name === "AbortError") return;
+        handlePlaybackFailure("メディアを再生できませんでした。サーバー応答エラー、または非対応の形式です。");
+      });
+    } else {
+      $("#ppi").textContent = "pause";
+      showPlayHud();
+    }
+  } catch (e) {
+    if (sessionId === loadSessionId) {
+      handlePlaybackFailure("再生処理中にエラーが発生しました。");
+    }
+  }
+}
+
+function startPlayback(m) {
+  loadSessionId++;
+  const sid = loadSessionId;
+  APP.currentMedia = m;
+  $("#playTitle").textContent = m.title;
+  $("#playSub").textContent = m.sub;
+  $("#audioArt").style.display = m.type === "audio" ? "grid" : "none";
+  $("#audioArt").innerHTML = I(m.type === "audio" ? "album" : "movie");
+  $("#t0").textContent = "00:00";
+  $("#t1").textContent = "00:00";
+  $("#pg").style.width = "0%";
+
+  const sr2 = $("#sr2");
+  sr2.innerHTML = "";
+  APP.mediaList.forEach(item => {
+    const c = el(`<div class="sc" data-f><div class="t">${esc(item.title)}</div><div class="s">${esc(item.sub)}</div></div>`);
+    c._a = () => startPlayback(item);
+    sr2.append(c);
+  });
+
+  go("play");
+
+  try {
+    mediaEl.pause();
+    mediaEl.removeAttribute("src");
+    mediaEl.load();
+    mediaEl.src = m.url;
+    mediaEl.load();
+    safePlayMedia(sid);
+  } catch (e) {
+    handlePlaybackFailure("メディアソースの設定中にエラーが発生しました。");
+  }
+}
+
+mediaEl.addEventListener("timeupdate", () => {
+  const dur = mediaEl.duration || 0;
+  const curT = mediaEl.currentTime || 0;
+  $("#t0").textContent = fmtTime(curT);
+  $("#t1").textContent = fmtTime(dur);
+  $("#pg").style.width = dur > 0 ? ((curT / dur) * 100) + "%" : "0%";
+});
+
+mediaEl.addEventListener("ended", () => {
+  if (APP.repeatMode === 1) {
+    try {
+      mediaEl.currentTime = 0;
+      safePlayMedia(loadSessionId);
+    } catch (_) {}
+    return;
+  }
+  if (APP.autoNext || APP.repeatMode === 2) {
+    const idx = APP.mediaList.findIndex(x => x.id === APP.currentMedia?.id);
+    const next = APP.mediaList[idx + 1] || (APP.repeatMode === 2 ? APP.mediaList[0] : null);
+    if (next) {
+      startPlayback(next);
+      return;
+    }
+  }
+  $("#ppi").textContent = "play_arrow";
+  showPlayHud();
+});
+
+mediaEl.addEventListener("error", () => {
+  if (!mediaEl.getAttribute("src")) return;
+  const code = mediaEl.error ? mediaEl.error.code : 0;
+  const detail = code === 2 ? "ネットワークエラーまたはサーバーエラーが発生しました。"
+    : code === 3 ? "メディアのデコード中にエラーが発生しました。"
+    : code === 4 ? "サーバーが見つからないか、非対応のメディア形式です。"
+    : "メディアの読み込みに失敗しました。";
+  handlePlaybackFailure(detail);
+});
+
+mediaEl.addEventListener("stalled", () => {
+  if (scr === "play" && mediaEl.getAttribute("src")) {
+    toast("サーバーからのデータ受信が遅延しています...");
+  }
+});
+
+document.addEventListener("fullscreenchange", () => {
+  const isFs = !!document.fullscreenElement;
+  $("#fsi").textContent = isFs ? "fullscreen_exit" : "fullscreen";
+  if (scr === "play" && isFs) {
+    hidePlayHud();
+  }
+});
+
+function toggleFullscreenAndHideUi() {
+  const stageEl = $("#stage");
+  if (!document.fullscreenElement) {
+    hidePlayHud();
+    if (stageEl.requestFullscreen) {
+      stageEl.requestFullscreen().catch(() => {});
+    }
+    toast("全画面・UI非表示 (下キーまたは決定でUI再表示)");
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen().catch(() => {});
+    }
+    showPlayHud();
+  }
+}
+
+/* 設定画面 */
+function buildSettings() {
+  const sw = $("#sw");
+  sw.innerHTML = "";
+  const items = [
+    ["連続再生", () => APP.autoNext ? "オン (次のメディアを自動再生)" : "オフ", "play_circle", () => { APP.autoNext = !APP.autoNext; }],
+    ["リピートモード", () => ["オフ", "1曲リピート", "全曲リピート"][APP.repeatMode], "repeat", () => { APP.repeatMode = (APP.repeatMode + 1) % 3; }],
+    ["ハードウェアデコード", () => APP.hwAccel ? "有効 (推奨)" : "無効", "memory", () => { APP.hwAccel = !APP.hwAccel; }],
+    ["レジューム再生", () => APP.resumePlay ? "有効" : "無効", "history", () => { APP.resumePlay = !APP.resumePlay; }],
+    ["ストレージ権限", () => APP.permGranted ? "許可済み" : "未許可 (クリックで設定)", "folder", () => { openOv("perm", 0); }],
+    ["PeerJS 端末ID", () => APP.peerId ? `${APP.peerId} (${APP.peerStatus})` : "未接続 (クリックで起動)", "share", () => { openPeerMenu(); }],
+    ["入力キーボード", () => ({ ja: "日本語 (かな)", en: "English (QWERTY)", sym: "記号" }[KB.layout]), "keyboard", () => { openOv("kbsw"); }],
+    ["キャッシュと履歴を削除", () => "追加したURL・リストを初期状態へ戻す", "delete", () => {
+      openSysDialog("初期化の確認", "追加したメディアリストを初期状態に戻しますか？", "", "キャンセル", "リセット", () => {
+        APP.mediaList = APP.mediaList.slice(-3);
+        buildBrowseRows();
+        toast("初期化しました");
+      });
+    }],
+    ["ライセンス・クレジット", () => "オープンソースのメディアプレイヤーにインスパイアされて作成しました", "info", () => {
+      openSysDialog("Sample VideoUI について", "オープンソースのメディアプレイヤーにインスパイアされて作成しました。", "", "閉じる", "OK", null);
+    }]
+  ];
+
+  items.forEach(([name, getVal, ic, toggleFn]) => {
+    const e = el(`<div class="se" data-f><div class="a">${esc(name)}</div><div class="b">${esc(getVal())}</div></div>`);
+    e._f = () => {
+      $("#snm").textContent = name;
+      $("#sic").innerHTML = I(ic);
+    };
+    e._a = () => {
+      toggleFn();
+      $(".b", e).textContent = getVal();
+      toast(`${name}: ${getVal()}`);
+    };
+    sw.append(e);
+  });
+}
+
+/* TVKeyboard API */
+const esc = t => String(t).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+function fieldTxt(f, t, c, ph) {
+  const base = c && t.endsWith(c) ? t.slice(0, -c.length) : t;
+  if (!t) { f.textContent = ph; f.classList.remove("q"); }
+  else { f.innerHTML = esc(base) + (c ? `<u class="cmp">${esc(c)}</u>` : ""); f.classList.add("q"); }
+}
+const KB = { open: false, mode: "inline", layout: "ja", base: "ja", shift: false, text: "", comp: "", cb: null, done: null, field: null, li: 0 };
+let KBP = null, kbRet = "browse";
+const DICT = { "さんぷる": ["サンプル"], "どうが": ["動画"], "おんがく": ["音楽"], "すとりーむ": ["ストリーム"], "てれび": ["テレビ"] };
+const GRP = "かが|きぎ|くぐ|けげ|こご|さざ|しじ|すず|せぜ|そぞ|ただ|ちぢ|つづっ|てで|とど|はばぱ|ひびぴ|ふぶぷ|へべぺ|ほぼぽ|うゔぅ|あぁ|いぃ|えぇ|おぉ|やゃ|ゆゅ|よょ|わゎ".split("|");
+const kata = t => [...t].map(c => /[ぁ-ゖ]/.test(c) ? String.fromCharCode(c.charCodeAt(0) + 96) : c).join("");
+
+function cands() {
+  if (KB.layout != "ja" || !KB.comp) return [];
+  const c = KB.comp, o = [], add = x => x && !o.includes(x) && o.push(x);
+  (DICT[c] || []).forEach(add);
+  Object.keys(DICT).filter(k => k != c && k.startsWith(c)).forEach(k => DICT[k].forEach(add));
+  add(kata(c)); add(c);
+  return o.slice(0, 8);
+}
+
+function rowsFor() {
+  const L = KB.layout, r = t => [...t].map(c => ({ l: KB.shift ? c.toUpperCase() : c, k: "ch" })), bs = w => ({ l: I("backspace"), k: "bs", w });
+  if (L == "ja") {
+    const q = ["あかさたなはまやらわ", "いきしちにひみ゛り小", "うくすつぬふむゆるを", "えけせてねへめ゜れ？", "おこそとのほもよろん"].map(r);
+    q[0].push({ l: "ー", k: "ch" }, bs());
+    q[1].push({ l: "、", k: "ch" }, { l: "あA", k: "kana", s: 1 });
+    q[2].push({ l: "。", k: "ch" }, { l: "変換", k: "conv", s: 1 });
+    q[3].push({ l: "！", k: "ch" }, { l: "確定", k: "ok", s: 1 });
+    q[4].push({ l: "空白", k: "space", s: 1 }, { l: "記号", k: "sym", s: 1 });
+    return q;
+  }
+  if (L == "en") return [[...r("1234567890"), bs(2)], r("qwertyuiop@-"), r("asdfghjkl_&'"), [{ l: I("shift"), k: "shift", on: KB.shift }, ...r("zxcvbnm,.?!")], [{ l: "記号", k: "sym", w: 2, s: 1 }, { l: "空白", k: "space", w: 6, s: 1 }, { l: "あA", k: "kana", w: 2, s: 1 }, ...r("/:")]];
+  return [[...r("!@#$%^&*()"), bs(2)], r("-_=+[]{}|\\~`"), r(";:'\",.<>/?¥€"), r("「」『』・〜…※→←↑↓"), [{ l: "ABC", k: "abc", w: 2, s: 1 }, { l: "空白", k: "space", w: 8, s: 1 }, ...r("。、")]]
+}
+
+function kbBuild(keep) {
+  const g = $("#kgrid"), ci = $$(".kk", g).indexOf(cur);
+  g.innerHTML = "";
+  rowsFor().forEach(r => {
+    const row = el('<div class="krw"></div>');
+    r.forEach(k => {
+      const w = k.w || 1, e = el(`<div class="kk${k.s ? " s" : ""}${k.on ? " on" : ""}" data-f style="width:${w * 90 + (w - 1) * 4}px">${k.l}</div>`);
+      e._a = () => { KB.li = $$(".kk", g).indexOf(e); kbPress(k); };
+      row.append(e);
+    });
+    g.append(row);
+  });
+  if (keep && ci >= 0) { const ks = $$(".kk", g); focus(ks[Math.min(ci, ks.length - 1)]); }
+}
+function kbFocusLast() { const ks = $$("#kgrid .kk"); focus(ks[Math.min(KB.li || 0, ks.length - 1)]); }
+function kbChg() {
+  const cb = $("#kcand"); cb.innerHTML = "";
+  cands().forEach(x => { const e = el(`<div class="kc" data-f>${esc(x)}</div>`); e._a = () => { KB.text += x; KB.comp = ""; kbChg(); kbFocusLast(); }; cb.append(e); });
+  if (KB.mode == "prompt") { const f = $("#fd"); fieldTxt(f, KB.text + KB.comp, KB.comp, ""); f.scrollLeft = 1e5; }
+  KB.cb && KB.cb(KB.text + KB.comp, KB.comp);
+}
+function kbMod() { const c = KB.comp.slice(-1), g = GRP.find(x => x.includes(c)); if (!g) return; KB.comp = KB.comp.slice(0, -1) + g[(g.indexOf(c) + 1) % g.length]; kbChg(); }
+function kbChar(c) {
+  if (KB.layout == "ja") { if ("゛゜小".includes(c)) return kbMod(); if (/[ぁ-んー]/.test(c)) { KB.comp += c; return kbChg(); } }
+  KB.text += KB.comp + c; KB.comp = "";
+  const sh = KB.layout == "en" && KB.shift; if (sh) KB.shift = false;
+  kbChg(); if (sh) kbBuild(true);
+}
+function kbBack() { if (KB.comp) KB.comp = KB.comp.slice(0, -1); else KB.text = KB.text.slice(0, -1); kbChg(); }
+function kbPress(k) {
+  const c = k.k;
+  if (c == "bs") kbBack();
+  else if (c == "shift") { KB.shift = !KB.shift; kbBuild(true); }
+  else if (c == "sym") { KB.base = KB.layout; KB.layout = "sym"; kbBuild(true); }
+  else if (c == "abc") { KB.layout = KB.base; kbBuild(true); }
+  else if (c == "kana") { KB.layout = KB.layout == "ja" ? "en" : "ja"; KB.base = KB.layout; KB.shift = false; kbBuild(true); }
+  else if (c == "space") { if (KB.layout == "ja" && KB.comp) { KB.text += cands()[0]; KB.comp = ""; kbChg(); } else kbChar(" "); }
+  else if (c == "conv") { const e = $(".kc"); e ? focus(e) : toast("変換する文字がありません"); }
+  else if (c == "ok") { KB.text += KB.comp; KB.comp = ""; kbChg(); }
+  else kbChar(k.l);
+}
+function kbOpen(o = {}) {
+  if (o.prompt && scr != "inp") { KBP = o; kbRet = scr; return go("inp"); }
+  Object.assign(KB, { open: true, mode: o.prompt ? "prompt" : "inline", text: o.text || "", comp: "", cb: o.onChange || null, done: o.onDone || null, field: o.field || null, shift: false });
+  if (o.layout) { KB.layout = o.layout; if (o.layout != "sym") KB.base = o.layout; }
+  if (o.prompt) $("#inpPrompt").textContent = o.promptText || "入力プロンプト";
+  $("#kact").textContent = o.action || (o.prompt ? "確定" : "検索");
+  $("#kbd").className = "on " + (o.prompt ? "pm" : "inl");
+  kbBuild(); kbChg(); focus($$("#kgrid .kk")[0]);
+}
+function kbClose(refocus) { if (!KB.open) return; KB.text += KB.comp; KB.comp = ""; KB.cb && KB.cb(KB.text, ""); KB.open = false; $("#kbd").className = ""; if (refocus && KB.field) focus(KB.field); }
+function kbDone() { KB.text += KB.comp; KB.comp = ""; kbChg(); const t = KB.text, d = KB.done; if (KB.mode == "inline") kbClose(false); d && d(t); }
+$("#kglb")._a = () => openOv("kbsw");
+$("#kact")._a = kbDone;
+window.TVKeyboard = { open: kbOpen, close: () => kbClose(true), get text() { return KB.text + KB.comp; } };
+
+/* 検索画面 */
+let Q = "", QC = "", prevS = "browse";
+function renderS() {
+  const q = Q.toLowerCase();
+  const f1 = $("#sf1");
+  fieldTxt(f1, Q, QC, "検索キーワードを入力");
+  const r1 = $("#sR1");
+  r1.innerHTML = "";
+  const hit = APP.mediaList.filter(m => !q || (m.title + m.sub).toLowerCase().includes(q));
+  hit.forEach(m => r1.append(makeMediaCard(m, "rc")));
+  if (!hit.length) r1.append(el('<div class="none">一致するメディアがありません</div>'));
+}
+
+/* ダイアログ群 */
+const PERMS = [
+  { ic: "folder", msg: "<b>Sample VideoUI</b> に、端末内の写真、メディア、ファイルへのアクセスを許可しますか?", hint: "この設定は後から 設定 > ストレージ権限 で変更できます", ok: "許可", no: "許可しない" }
+];
+const ERRS = [
+  { msg: "エラーが発生しました", btn: "閉じる" },
+  { msg: "メディアを再生できませんでした。ファイル形式またはURL、ネットワーク接続を確認してください。", btn: "閉じる" },
+  { msg: "有効な http:// または https:// で始まるURLを入力してください。", btn: "閉じる" }
+];
+const OV = { perm: 1, sys: 1, err: 1, kbsw: 1 };
+let under = null, ovFrom = null;
+
+function openSysDialog(title, msg, chk, noTxt, okTxt, onOk) {
+  APP.sysOkCallback = onOk;
+  under = scr; ovFrom = cur;
+  $("#sdT").textContent = title;
+  $("#sdM").textContent = msg;
+  $("#sdC").style.display = chk ? "flex" : "none";
+  $("#sdCt").textContent = chk;
+  $("#sdK").classList.remove("on");
+  $("#sdX").textContent = noTxt || "キャンセル";
+  $("#sdO").textContent = okTxt || "OK";
+  $("#sys").classList.add("on");
+  scr = "sys";
+  focus($("#sdO"));
+}
+
+function openOvCustomErr(msg) {
+  under = scr; ovFrom = cur;
+  $("#erM").textContent = msg;
+  $("#erB").textContent = "閉じる";
+  $("#err").classList.add("on");
+  scr = "err";
+  focus($("#erB"));
+}
+
+function openOv(id, n = 0) {
+  under = scr; ovFrom = cur;
+  let f;
+  if (id == "perm") {
+    const p = PERMS[n] || PERMS[0];
+    $("#pmI").innerHTML = I(p.ic);
+    $("#pmT").innerHTML = p.msg;
+    $("#pmH").textContent = p.hint;
+    $("#pmA").textContent = p.ok;
+    $("#pmD").textContent = p.no;
+    f = $("#pmA");
+  } else if (id == "err") {
+    const x = ERRS[n] || ERRS[0];
+    $("#erM").textContent = x.msg;
+    $("#erB").textContent = x.btn;
+    f = $("#erB");
+  } else if (id == "kbsw") {
+    const L = [["ja", "日本語 (かな)", "Sample VideoUI 日本語入力"], ["en", "English (QWERTY)", "英数字・URL入力"], ["sym", "記号", "記号・約物"]];
+    const l = $("#kswl"); l.innerHTML = "";
+    L.forEach(([k, t, d]) => {
+      const e = el(`<div class="se" data-f><div class="a">${t}</div><div class="b">${KB.layout == k ? "現在のキーボード · " : ""}${d}</div></div>`);
+      e._a = () => { if (k != "sym") KB.base = k; KB.layout = k; KB.shift = false; kbBuild(); closeOv(); };
+      l.append(e);
+    });
+    f = $$(".se", l)[Math.max(0, L.findIndex(x => x[0] == KB.layout))];
+  }
+  $("#" + id).classList.add("on");
+  scr = id;
+  if (f) focus(f);
+}
+
+function closeOv() {
+  $("#" + scr).classList.remove("on");
+  scr = under;
+  if (ovFrom && document.contains(ovFrom)) focus(ovFrom);
+}
+
+/* アクション */
+const ACT = {
+  search: () => { prevS = scr; go("s1"); },
+  mic: () => { toast("キーボードで検索キーワードを入力してください"); ACT.field(); },
+  field: () => {
+    const f = $("#sf1");
+    kbOpen({
+      prompt: false, text: Q, field: f,
+      onChange: (t, c) => { Q = t; QC = c; renderS(); },
+      onDone: () => { QC = ""; renderS(); focus($$("#s1 .card")[0] || f); }
+    });
+  },
+  detPlay: () => { if (APP.currentMedia) startPlayback(APP.currentMedia); },
+  detPl: () => {
+    if (!APP.currentMedia) return;
+    APP.currentMedia.inPl = !APP.currentMedia.inPl;
+    buildBrowseRows();
+    toast(APP.currentMedia.inPl ? "プレイリストに追加しました" : "プレイリストから解除しました");
+  },
+  detPeer: () => { if (APP.currentMedia) promptTargetPeerAndSend(APP.currentMedia); },
+  pp: () => {
+    if (mediaEl.paused) {
+      safePlayMedia(loadSessionId);
+    } else {
+      mediaEl.pause();
+      $("#ppi").textContent = "play_arrow";
+      showPlayHud();
+    }
+  },
+  rw: () => { try { mediaEl.currentTime = Math.max(0, (mediaEl.currentTime || 0) - 10); } catch (_) {} showPlayHud(); },
+  ff: () => { try { mediaEl.currentTime = Math.min(mediaEl.duration || 0, (mediaEl.currentTime || 0) + 10); } catch (_) {} showPlayHud(); },
+  stop: () => {
+    loadSessionId++;
+    try {
+      mediaEl.pause();
+      mediaEl.removeAttribute("src");
+      mediaEl.load();
+    } catch (_) {}
+    if (document.fullscreenElement && document.exitFullscreen) {
+      document.exitFullscreen().catch(() => {});
+    }
+    $("#ppi").textContent = "play_arrow";
+    go("browse");
+  },
+  rep: () => {
+    APP.repeatMode = (APP.repeatMode + 1) % 3;
+    $("#repi").textContent = APP.repeatMode === 1 ? "repeat_one" : "repeat";
+    toast(["リピート: オフ", "リピート: 1曲", "リピート: 全曲"][APP.repeatMode]);
+    showPlayHud();
+  },
+  hudToggle: () => {
+    if ($("#play").classList.contains("hud-hide")) {
+      showPlayHud();
+    } else {
+      hidePlayHud();
+      toast("UIを非表示にしました (下キーまたは決定で再表示)");
+    }
+  },
+  fsToggle: () => {
+    toggleFullscreenAndHideUi();
+  },
+  pa: () => {
+    APP.permGranted = true;
+    closeOv();
+    toast("アクセスを許可しました");
+    if (APP.pendingActionAfterPerm) {
+      const fn = APP.pendingActionAfterPerm;
+      APP.pendingActionAfterPerm = null;
+      fn();
+    }
+  },
+  pd: () => {
+    APP.pendingActionAfterPerm = null;
+    closeOv();
+    toast("許可されませんでした");
+  },
+  yc: () => { APP.sysOkCallback = null; closeOv(); },
+  yo: () => {
+    const fn = APP.sysOkCallback;
+    APP.sysOkCallback = null;
+    closeOv();
+    if (fn) fn();
+  },
+  yk: () => $("#sdK").classList.toggle("on"),
+  ed: () => closeOv()
+};
+
+/* フォーカス制御 */
+function focus(e) {
+  if (!e) return;
+  if (cur) cur.classList.remove("foc");
+  cur = e;
+  e.classList.add("foc");
+
+  const orb = e.classList.contains("orb");
+  if (scr == "browse") {
+    const b = e.closest(".blk");
+    let activeSecId = null;
+    if (b) {
+      $$(".blk").forEach(x => x.classList.toggle("act", x == b));
+      activeSecId = b.id;
+      const navMatch = $(`.hd[data-nav="${b.id}"]`);
+      if (navMatch) $$(".hd").forEach(h => h.classList.toggle("sel", h == navMatch));
+    } else if (e.closest(".hds")) {
+      activeSecId = e.dataset.nav;
+      $$(".hd").forEach(h => h.classList.toggle("sel", h == e));
+      const targetBlk = $("#" + activeSecId);
+      if (targetBlk) $$(".blk").forEach(x => x.classList.toggle("act", x == targetBlk));
+    }
+    if (activeSecId) {
+      $("#browse").classList.toggle("theme-browsing", activeSecId === "sec_browse");
+    }
+    if (!orb) $("#browse").classList.toggle("mini", !e.closest(".hds"));
+  }
+  if (scr == "det") $("#det").classList.toggle("rel", !!e.closest(".drl"));
+  if (scr == "play") showPlayHud();
+
+  const h = e.closest(".hds");
+  if (h) h.scrollTo({ top: e.offsetTop - h.clientHeight / 2 + e.offsetHeight / 2, behavior: "smooth" });
+  else e.scrollIntoView({ block: "center", inline: "center", behavior: "smooth" });
+
+  e._f && e._f();
+}
+
+function go(id, from) {
+  if (scr === "play" && id !== "play") {
+    loadSessionId++;
+    try {
+      mediaEl.pause();
+      mediaEl.removeAttribute("src");
+      mediaEl.load();
+    } catch (_) {}
+    if (document.fullscreenElement && document.exitFullscreen) {
+      document.exitFullscreen().catch(() => {});
+    }
+  }
+  $$(".scr").forEach(s => s.classList.toggle("on", s.id == id));
+  scr = id;
+  if (from) origin = from;
+
+  if (id == "list") buildPlaylistScreen();
+  if (id == "set") buildSettings();
+  if (KB.open && id != "inp") { KB.open = false; $("#kbd").className = ""; }
+  QC = "";
+  if (id == "inp") {
+    const o = KBP || {};
+    if (!KBP) kbRet = "browse";
+    KBP = null;
+    kbOpen(Object.assign({ onDone: t => { go(kbRet); } }, o, { prompt: true }));
+  }
+  if (id == "s1") { Q = ""; renderS(); }
+
+  let t = $("#" + id + " [data-f]");
+  if (id == "browse") t = origin && $("#browse").contains(origin) ? origin : $(".hd");
+  if (id == "inp") t = $$("#kgrid .kk")[0];
+  if (id == "det") t = $$("#det .db")[0];
+  if (id == "play") t = $('[data-act="pp"]');
+  if (t) focus(t);
+}
+
+const ROOT = () => OV[scr] ? $("#" + scr) : KB.open ? $("#kbd") : $("#" + scr);
+
+function move(d) {
+  if (!cur) return;
+
+  // 再生画面での上キー操作: 最上段(シークバーボタン群)でさらに上を押すと全画面＆UI非表示へ移行
+  if (scr === "play" && d === "u" && cur.closest(".bar")) {
+    toggleFullscreenAndHideUi();
+    return;
+  }
+
+  if (scr === "browse" && cur.closest(".hds")) {
+    const hds = $$(".hd");
+    const idx = hds.indexOf(cur);
+    if (d === "d" && idx < hds.length - 1) return focus(hds[idx + 1]);
+    if (d === "u" && idx > 0) return focus(hds[idx - 1]);
+    if (d === "u" && idx === 0) return focus($("#browse .orb"));
+    if (d === "r") {
+      const targetBlk = $("#" + cur.dataset.nav);
+      const firstItem = targetBlk && $("[data-f]", targetBlk);
+      if (firstItem) return focus(firstItem);
+    }
+  }
+
+  if (scr === "browse" && d === "l" && cur.closest(".main")) {
+    const row = cur.closest(".row");
+    const items = $$("[data-f]", row);
+    if (items.indexOf(cur) === 0) {
+      const selHd = $(".hd.sel") || $(".hd");
+      if (selHd) return focus(selHd);
+    }
+  }
+
+  const a = cur.getBoundingClientRect(), ax = a.left + a.width / 2, ay = a.top + a.height / 2;
+  let best, bs = 1e9;
+  $$("[data-f]", ROOT()).forEach(e => {
+    if (e == cur) return;
+    const b = e.getBoundingClientRect();
+    if (!b.width) return;
+    const dx = b.left + b.width / 2 - ax, dy = b.top + b.height / 2 - ay;
+    const p = d == "r" ? dx : d == "l" ? -dx : d == "d" ? dy : -dy;
+    const q = (d == "r" || d == "l") ? Math.abs(dy) : Math.abs(dx);
+    if (p < 8) return;
+    const s = p + q * 2.5;
+    if (s < bs) { bs = s; best = e; }
+  });
+  if (best) focus(best);
+}
+
+function act() {
+  if (!cur) return;
+  const d = cur.dataset;
+  if (d.nav) {
+    $$(".hd").forEach(h => h.classList.toggle("sel", h == cur));
+    const blk = $("#" + d.nav);
+    if (blk) {
+      const first = $("[data-f]", blk);
+      if (first) focus(first);
+    }
+    return;
+  }
+  if (d.act && ACT[d.act]) return ACT[d.act]();
+  if (cur._a) return cur._a();
+}
+
+/* キーボード・リモコン操作 */
+addEventListener("keydown", e => {
+  const code = e.keyCode || e.which;
+
+  if (scr === "play" && $("#play").classList.contains("hud-hide")) {
+    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter"].includes(e.key)) {
+      e.preventDefault();
+      showPlayHud();
+      return;
+    }
+  }
+
+  if (code === 415) { e.preventDefault(); if (scr === "play") { safePlayMedia(loadSessionId); } return; }
+  if (code === 19)  { e.preventDefault(); if (scr === "play") { mediaEl.pause(); $("#ppi").textContent = "play_arrow"; showPlayHud(); } return; }
+  if (code === 413) { e.preventDefault(); if (scr === "play") ACT.stop(); return; }
+  if (code === 412) { e.preventDefault(); if (scr === "play") ACT.rw(); return; }
+  if (code === 417) { e.preventDefault(); if (scr === "play") ACT.ff(); return; }
+
+  const isBack = (e.key === "Escape" || e.key === "GoBack" || code === 461 || code === 10009 || (e.key === "Backspace" && !KB.open && scr !== "s1"));
+
+  if (KB.open && !OV[scr]) {
+    if (isBack) { e.preventDefault(); if (KB.mode == "prompt") go(kbRet); else kbClose(true); return; }
+    if (e.key === "Backspace") { e.preventDefault(); kbBack(); return; }
+    if (e.key.length === 1 && e.key !== " " && !e.ctrlKey && !e.metaKey) { e.preventDefault(); kbChar(e.key); return; }
+  }
+
+  if (scr === "s1" && !KB.open) {
+    if (e.key === "Backspace") { e.preventDefault(); Q = Q.slice(0, -1); renderS(); return; }
+    if (e.key.length === 1 && e.key !== " ") { e.preventDefault(); Q += e.key; renderS(); return; }
+  }
+
+  const m = { ArrowRight: "r", ArrowLeft: "l", ArrowDown: "d", ArrowUp: "u" }[e.key];
+  if (m) {
+    e.preventDefault();
+    move(m);
+  } else if (e.key === "Enter" || e.key === " ") {
+    e.preventDefault();
+    act();
+  } else if (isBack) {
+    e.preventDefault();
+    if (OV[scr]) closeOv();
+    else if (scr !== "browse") go(scr === "s1" ? prevS : "browse");
+  }
+});
+
+document.addEventListener("click", e => {
+  const t = e.target.closest("[data-f]");
+  if (t && ROOT().contains(t)) { focus(t); act(); }
+});
+
+function fit() {
+  const s = Math.min(innerWidth / 1920, innerHeight / 1080), st = $("#stage");
+  st.style.width = innerWidth / s + "px";
+  st.style.height = innerHeight / s + "px";
+  st.style.transform = `scale(${s})`;
+  st.style.left = "0";
+  st.style.top = "0";
+}
+addEventListener("resize", fit);
+
+fit();
+buildBrowseRows();
+go("browse");
+</script>
+</body>
+</html>
